@@ -241,7 +241,7 @@ class Agent:
         checkpoint_path = (self.save_dir / f'agent_net.ckpt')
         torch.save(dict(
             model=self.brain.policy_net.state_dict(),
-            exploration_rate=self.exploration_rate,
+            exploration_rate=self.brain.exploration_rate,
             step=self.step,
             episode=self.episode
         ), checkpoint_path)
@@ -249,7 +249,7 @@ class Agent:
         print(
             f"Episode {self.episode} - "
             f"Step {self.step} - "
-            f"Epsilon {self.exploration_rate:.3f} - "
+            f"Epsilon {self.brain.exploration_rate:.3f} - "
             f"Time {datetime_now}"
         )
 
