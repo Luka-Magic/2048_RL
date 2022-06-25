@@ -224,7 +224,8 @@ class Agent:
         if self.wandb == False:
             return
         self.episode = episode
-        self.logger.log_episode(self.step, episode, self.brain.exploration_rate, info)
+        self.logger.log_episode(
+            self.step, episode, self.brain.exploration_rate, info)
 
         if episode != 0 and episode != self.restart_episode:
             if episode % self.save_checkpoint_interval == 0:
@@ -293,8 +294,9 @@ class Logger:
             episode_average_loss = self.episode_loss / self.episode_learn_steps
             episode_average_q = self.episode_q / self.episode_learn_steps
             episode_step_per_second = self.episode_learn_steps / episode_time  # 一回の学習に何秒かけたか
-        
-        episode_reward = self.episode_reward / self.episode_steps if self.episode_steps != 0 else 0
+
+        episode_reward = self.episode_reward / \
+            self.episode_steps if self.episode_steps != 0 else 0
 
         wandb_dict = dict(
             episode=episode,
