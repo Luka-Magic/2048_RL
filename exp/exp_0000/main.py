@@ -45,8 +45,9 @@ def main(cfg: DictConfig):
     # 学習
     for episode in tqdm(range(init_episode, cfg.n_episodes)):
         state = env.reset()
-        print(state.shape)
         while True:
+            print(state.shape)
+            print(state)
             action = agent.action(state)
             next_state, reward, done, info = env.step(action)
             agent.observe(state, next_state, action, reward, done)
