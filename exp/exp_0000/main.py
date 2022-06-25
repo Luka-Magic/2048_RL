@@ -3,7 +3,7 @@ import hydra
 import wandb
 from pathlib import Path
 from omegaconf import DictConfig
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 # 環境
 import gym
 import gym_2048

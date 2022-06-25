@@ -21,6 +21,7 @@ class Memory:
     def __init__(self, cfg):
         self.memory_size = cfg.memory_size
         self.memory = deque(maxlen=self.memory_size)
+        self.batch_size = cfg.batch_size
 
     def push(self, exp):
         self.memory.append(exp)
