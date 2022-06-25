@@ -94,7 +94,7 @@ class Brain:
         if np.random.rand() < epsilon:
             action = np.random.randint(self.n_actions)
         else:
-            state = state.__array__()
+            # state = state.__array__()
             state = torch.tensor(state).cuda().unsqueeze(0)
             with torch.no_grad():
                 Q = self._get_Q(self.policy_net, state)
