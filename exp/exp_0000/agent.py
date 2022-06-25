@@ -180,7 +180,7 @@ class Agent:
         self.save_model_interval = cfg.save_model_interval
 
         self.brain = Brain(cfg, n_actions)
-        
+
         self.wandb = cfg.wandb
         if self.wandb:
             self.logger = Logger(cfg, self.restart_episode)
