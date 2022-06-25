@@ -50,6 +50,7 @@ class Brain:
         self.cfg = cfg
         self.wandb = cfg.wandb
         self.episode = 0
+        self.batch_size = cfg.batch_size
 
         self.n_episodes = cfg.n_episodes
         self.gamma = gamma
