@@ -16,6 +16,7 @@ class ChangeObservation(gym.ObservationWrapper):
             observation.copy(), dtype=torch.uint8).unsqueeze(0)
         return observation
 
-def env_wrapper(env):
+
+def env_wrappers(env):
     env = ChangeObservation(env)
     return env
