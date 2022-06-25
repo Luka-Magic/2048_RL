@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.cuda.amp import autocast, GradScaler
 from model import Model
-# from utils.SumTree import SumTree
+from utils.SumTree import SumTree
 from collections import deque, namedtuple
 import pickle
 import time
@@ -43,6 +43,7 @@ class Brain:
     def __init__(self, cfg, n_actions, save_dir):
         self.n_actions = n_actions
         self.save_dir = save_dir
+        self.input_dim = (cfg.state_channel, cfg.state_height, cfg.state_width)
 
         # init
         self.cfg = cfg
@@ -82,9 +83,9 @@ class Brain:
     def _create_model(self, cfg):
         # modelを選べるように改変
         policy_net = Model(
-            self.cfg, self.n_actions).float().to('cuda')
+            self.cfg, self.input_dim, self.n_actions).float().to('cuda')
         target_net = Model(
-            self.cfg, self.n_actions).float().to('cuda')
+            self.cfg, self.input_dim, self.n_actions).float().to('cuda')
         return policy_net, target_net
 
     def select_action(self, state):
