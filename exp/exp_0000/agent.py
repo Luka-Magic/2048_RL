@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.cuda.amp import autocast, GradScaler
-from model import MarioNet
+from model import Model
 from utils.SumTree import SumTree
 from collections import deque, namedtuple
 import pandas as pd
@@ -82,9 +82,9 @@ class Brain:
 
     def _create_model(self, cfg):
         # modelを選べるように改変
-        policy_net = MarioNet(
+        policy_net = Model(
             self.cfg, self.n_actions).float().to('cuda')
-        target_net = MarioNet(
+        target_net = Model(
             self.cfg, self.n_actions).float().to('cuda')
         return policy_net, target_net
 
@@ -233,7 +233,7 @@ class Agent:
                 self._save(episode)
 
     def _save_checkpoint(self, episode):
-        checkpoint_path = (self.save_dir / f'mario_net.ckpt')
+        checkpoint_path = (self.save_dir / f'agent_net.ckpt')
         torch.save(dict(
             model=self.brain.policy_net.state_dict(),
             exploration_rate=self.exploration_rate,
@@ -249,7 +249,7 @@ class Agent:
         )
 
     def _save(self, episode):
-        checkpoint_path = (self.save_dir / f'mario_net_{episode}.ckpt')
+        checkpoint_path = (self.save_dir / f'agent_net_{episode}.ckpt')
         torch.save(dict(
             model=self.brain.policy_net.state_dict(),
             exploration_rate=self.brain.exploration_rate,
