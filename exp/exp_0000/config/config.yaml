@@ -1,6 +1,6 @@
 ######   SETTING   #############################
 # init setting 
-reset_learning: False
+reset_learning: True
 environment: '2048-v0'
 
 # wandb setting
@@ -52,5 +52,5 @@ synchronize_interval: 10000
 
 # exploration rate
 exploration_rate: 0.9
-exploration_rate_decay: 0.999942
+exploration_rate_decay: 0.9999942
 exploration_rate_min: 0.1
