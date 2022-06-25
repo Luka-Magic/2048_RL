@@ -183,7 +183,7 @@ class Agent:
 
         self.wandb = cfg.wandb
         if self.wandb:
-            self.logger = Logger(cfg, self.restart_episode)
+            self.logger = Logger()
 
     def action(self, state):
         self.step += 1
@@ -228,8 +228,10 @@ class Agent:
         if self.wandb == False:
             return
         self.episode = episode
-        self.logger.log_episode(
-            self.step, episode, self.brain.exploration_rate, info)
+
+        if self.wandb:
+            self.logger.log_episode(
+                self.step, episode, self.brain.exploration_rate, info)
 
         if episode != 0 and episode != self.restart_episode:
             if episode % self.save_checkpoint_interval == 0:
@@ -264,7 +266,7 @@ class Agent:
 
 
 class Logger:
-    def __init__(self, cfg, restart_episode):
+    def __init__(self):
         self.episode_last_time = time.time()
         self._reset_episode_log()
 
@@ -316,5 +318,6 @@ class Logger:
             average_loss=episode_average_loss,
             average_q=episode_average_q,
         )
+        wandb.log(wandb_dict)
 
         self._reset_episode_log()
