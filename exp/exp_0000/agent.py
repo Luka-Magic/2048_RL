@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.cuda.amp import autocast, GradScaler
 from model import Model
-from utils.SumTree import SumTree
+# from utils.SumTree import SumTree
 from collections import deque, namedtuple
 import pandas as pd
 import pickle
