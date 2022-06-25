@@ -207,7 +207,7 @@ class Agent:
         loss, q = self.brain.update(self.episode)
 
         if self.wandb:
-            self.logger.step(loss, q)
+            self.logger.step_learn(loss, q)
 
     def restart_learning(self, checkpoint_path):
         self._reset_episode_log()
