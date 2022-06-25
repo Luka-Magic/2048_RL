@@ -53,7 +53,7 @@ class Brain:
         self.batch_size = cfg.batch_size
 
         self.n_episodes = cfg.n_episodes
-        self.gamma = gamma
+        self.gamma = cfg.gamma
 
         # model
         self.policy_net, self.target_net = self._create_model(cfg)
