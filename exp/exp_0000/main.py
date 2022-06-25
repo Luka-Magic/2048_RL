@@ -46,8 +46,6 @@ def main(cfg: DictConfig):
     for episode in tqdm(range(init_episode, cfg.n_episodes)):
         state = env.reset()
         while True:
-            print(state.shape)
-            print(state)
             action = agent.action(state)
             next_state, reward, done, info = env.step(action)
             agent.observe(state, next_state, action, reward, done)
