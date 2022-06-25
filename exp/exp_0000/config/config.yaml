@@ -1,6 +1,6 @@
 ######   SETTING   #############################
 # init setting 
-reset_learning: True
+reset_learning: False
 environment: '2048-v0'
 
 # wandb setting
@@ -16,7 +16,7 @@ state_channel: 1
 
 ######   BASIC   ###############################
 # basic
-n_episodes: 10000
+n_episodes: 250000
 
 ######   MEMORY   ##############################
 # memory
