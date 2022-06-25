@@ -12,8 +12,6 @@ class ChangeObservation(gym.ObservationWrapper):
 
     def observation(self, observation):
         observation = np.clip(np.log2(observation).astype(np.uint8), 0, 15)
-        observation = torch.tensor(
-            observation.copy(), dtype=torch.uint8).unsqueeze(0)
         return observation
 
 

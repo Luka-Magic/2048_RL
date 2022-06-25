@@ -12,6 +12,7 @@ from env_wrapper import env_wrappers
 from agent import Agent
 import warnings
 
+
 @hydra.main(config_path='config', config_name='config')
 def main(cfg: DictConfig):
     # 設定
@@ -38,12 +39,13 @@ def main(cfg: DictConfig):
         init_episode = 0
     else:
         init_episode = agent.restart_episode()
-    
+
     env = env_wrappers(env, cfg, init_episode=init_episode)
 
     # 学習
     for episode in tqdm(range(init_episode, cfg.n_episodes)):
         state = env.reset()
+        print(state.shape)
         while True:
             action = agent.action(state)
             next_state, reward, done, info = env.step(action)
@@ -53,6 +55,7 @@ def main(cfg: DictConfig):
             if done:
                 break
         agent.log_episode(episode, info)
+
 
 if __name__ == '__main__':
     main()
