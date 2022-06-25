@@ -133,8 +133,8 @@ class Brain:
         return model(x)
 
     def _loss(self, batch, weights):
-        state = torch.tensor(batch.state).to('cuda')
-        next_state = torch.tensor(batch.next_state).to('cuda')
+        state = torch.tensor(batch.state).to('cuda').float()
+        next_state = torch.tensor(batch.next_state).to('cuda').float()
         action = torch.tensor(batch.action).to('cuda')
         reward = torch.tensor(batch.reward).to('cuda')
         done = torch.tensor(batch.done).to('cuda')
