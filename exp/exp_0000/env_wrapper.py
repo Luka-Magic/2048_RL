@@ -17,6 +17,6 @@ class ChangeObservation(gym.ObservationWrapper):
         return observation
 
 
-def env_wrappers(env):
+def env_wrappers(env, cfg, init_episode):
     env = ChangeObservation(env)
     return env
