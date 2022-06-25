@@ -109,7 +109,7 @@ class Brain:
         return action
 
     def send_memory(self, state, next_state, action, reward, done):
-        exp = Transition(state, next_state, [action],
+        exp = Transition([state], [next_state], [action],
                          [reward], [done])
         self.memory.push(exp)
 
@@ -133,13 +133,11 @@ class Brain:
         return model(x)
 
     def _loss(self, batch, weights):
-        # state = torch.tensor(batch.state).to('cuda')
-        # next_state = torch.tensor(batch.next_state).to('cuda')
-        # action = torch.tensor(batch.action).to('cuda')
-        # reward = torch.tensor(batch.reward).to('cuda')
-        # done = torch.tensor(batch.done).to('cuda')
-        state, next_state, action, reward, done = map(
-            lambda x: torch.tensor(x).to('cuda'))
+        state = torch.tensor(batch.state).to('cuda')
+        next_state = torch.tensor(batch.next_state).to('cuda')
+        action = torch.tensor(batch.action).to('cuda')
+        reward = torch.tensor(batch.reward).to('cuda')
+        done = torch.tensor(batch.done).to('cuda')
 
         # non_final_mask = torch.tensor(~.done).to('cuda')
         # non_final_next_state = torch.stack([next_state for not])
