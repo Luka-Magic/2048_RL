@@ -1,6 +1,7 @@
 ######   SETTING   #############################
 # init setting 
 reset_learning: False
+environment: '2048-v0'
 
 # wandb setting
 wandb: False
@@ -46,8 +47,8 @@ optimizer: Adam
 loss_fn: SmoothL1Loss
 gamma: 0.9
 burnin: 10000
-learn_every: 3
-sync_every: 10000
+learn_interval: 3
+synchronize_interval: 10000
 
 # exploration rate
 exploration_rate: 0.

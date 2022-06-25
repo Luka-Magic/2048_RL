@@ -95,27 +95,32 @@ class Brain:
         if np.random.rand() < epsilon:
             action = np.random.randint(self.n_actions)
         else:
+            state = state.__array__()
             state = torch.tensor(state).cuda().unsqueeze(0)
             with torch.no_grad():
                 Q = self._get_Q(self.policy_net, state)
             action = torch.argmax(Q, axis=1).item()
 
-        self.exploration_rate *= self.exploration_rate_decay
-        self.exploration_rate = max(
-            self.exploration_rate_min, self.exploration_rate)
+        if not self.noisy:
+            self.exploration_rate *= self.exploration_rate_decay
+            self.exploration_rate = max(
+                self.exploration_rate_min, self.exploration_rate)
+
         return action
 
-    def send_memory(self, exp):
-        exp = Transition(exp.state, exp.next_state, [exp.action],
-                         [exp.reward], [exp.done])
+    def send_memory(self, state, next_state, action, reward, done):
+        exp = Transition(state.__array__(), next_state.__array__(), [action],
+                         [reward], [done])
         self.memory.push(exp)
 
     def update(self, episode):
+        # メモリからサンプル
         indices, batch, weights = self.memory.sample(episode)
-
+        # サンプルした経験から損失を計算
         loss, td_error, q = self._loss(batch, weights)
+        # PERがONの場合はメモリを更新
         self.memory.update(indices, td_error)
-
+        # policy_netを学習
         self.scaler.scale(loss).backward()
         self.scaler.step(self.optimizer)
         self.scaler.update()
@@ -168,9 +173,9 @@ class Agent:
         self.restart_step = 0
         self.restart_episode = 0
 
-        self.sync_every = cfg.sync_every
+        self.synchronize_interval = cfg.synchronize_interval
         self.burnin = cfg.burnin
-        self.learn_every = cfg.learn_every
+        self.learn_interval = cfg.learn_interval
 
         self.brain = Brain(cfg, n_actions, save_dir)
         self.wandb = cfg.wandb
@@ -179,26 +184,28 @@ class Agent:
 
     def action(self, state):
         self.step += 1
-        action = self.brain.select_action(state._array__())
+        action = self.brain.select_action(state)
         return action
 
     def observe(self, state, next_state, action, reward, done):
-        exp = Transition(state.__array__(), next_state.__array__(), action, reward, done)
-        self.brain.send_memory(exp)
-    
+        self.brain.send_memory(state, next_state, action, reward, done)
+        if self.wandb:
+            self.logger.step(reward)
+
     def learn(self):
-        if self.step % self.sync_every == 0:
+        if self.step % self.synchronize_interval == 0:
             self.brain.synchronize_model()
         if self.step % self.burnin + self.restart_episode:
             return
-        if self.step % self.learn_every != 0:
+        if self.step % self.learn_interval != 0:
             return
-        
+
+        # メモリからサンプリングして学習を行い、損失とqの値を出力
         loss, q = self.brain.update(self.episode)
 
         if self.wandb:
-            self.logger.step(self.brain.exploration_rate, loss, q)
-        
+            self.logger.step(loss, q)
+
     def restart_learning(self, checkpoint_path):
         self._reset_episode_log()
 
@@ -213,19 +220,19 @@ class Agent:
         self.step = self.restart_step
         self.episode = self.restart_episode
         return self.restart_episode
-    
+
     def log_episode(self, episode, info):
         if self.wandb == False:
             return
         self.episode = episode
-        self.logger.log_episode(episode, info)
+        self.logger.log_episode(self.step, episode, self.brain.exploration_rate, info)
 
         if episode != 0 and episode != self.restart_episode:
             if episode % self.save_checkpoint_interval == 0:
                 self._save_checkpoint(episode)
             if episode % self.save_model_interval == 0:
                 self._save(episode)
-    
+
     def _save_checkpoint(self, episode):
         checkpoint_path = (self.save_dir / f'mario_net.ckpt')
         torch.save(dict(
@@ -250,50 +257,53 @@ class Agent:
             step=self.step,
             episode=episode
         ), checkpoint_path)
-    
+
 
 class Logger:
-    def __init__(self):
+    def __init__(self, cfg, restart_episode):
         self.episode_last_time = time.time()
-        self.step = 0
         self._reset_episode_log()
 
     def _reset_episode_log(self):
         # 変数名どうしよう、logとかつけたらわかりやすそう
-        # reward_during_one_episode? -> episode_reward
+        self.episode_steps = 0
         self.episode_reward = 0.0
-        self.episode_length = 0
         self.episode_loss = 0.0
         self.episode_q = 0.0
-        self.episode_loss_length = 0
+        self.episode_learn_steps = 0
         self.episode_start_time = self.episode_last_time
 
-    def step(self, exploration_rate, loss, q):
-        self.step += 1
-        self.episode_loss += loss
-        self.episode_loss_length += 1
-        self.episode_q += q
-        self.exploration_rate = exploration_rate
+    def step(self, reward):
+        self.episode_steps += 1
+        self.episode_reward += reward
 
-    def log_episode(self, episode, info):
+    def step_learn(self, loss, q):
+        # 一回の学習につき (learn_interval分飛ばしている)
+        self.episode_learn_steps += 1
+        self.episode_loss += loss
+        self.episode_q += q
+
+    def log_episode(self, step, episode, exploration_rate, info):
         self.episode_last_time = time.time()
         episode_time = self.episode_last_time - self.episode_start_time
-        if self.episode_loss_length == 0:
+        if self.episode_learn_steps == 0:
             episode_average_loss = 0
             episode_average_q = 0
             episode_step_per_second = 0
         else:
-            episode_average_loss = self.episode_loss / self.episode_loss_length
-            episode_average_q = self.episode_q / self.episode_loss_length
-            episode_step_per_second = self.episode_loss_length / episode_time
+            episode_average_loss = self.episode_loss / self.episode_learn_steps
+            episode_average_q = self.episode_q / self.episode_learn_steps
+            episode_step_per_second = self.episode_learn_steps / episode_time  # 一回の学習に何秒かけたか
+        
+        episode_reward = self.episode_reward / self.episode_steps if self.episode_steps != 0 else 0
 
         wandb_dict = dict(
             episode=episode,
-            step=self.step,
-            epsilon=self.exploration_rate,
+            step=step,
+            epsilon=exploration_rate,
             step_per_second=episode_step_per_second,
-            reward=self.episode_reward,
-            length=self.episode_length,
+            reward=episode_reward,
+            length=self.episode_steps,
             average_loss=episode_average_loss,
             average_q=episode_average_q,
             dead_or_alive=int(info['flag_get']),
