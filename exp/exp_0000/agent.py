@@ -30,7 +30,7 @@ class Memory:
         sample_indices = np.random.choice(
             np.arange(len(self.memory)), replace=False, size=self.batch_size)
         batch = [self.memory[idx] for idx in sample_indices]
-        batch = Transition(*map(torch.stack, zip(*batch)))
+        batch = Transition(*map(np.stack, zip(*batch)))
         return (None, batch, None)
 
     def update(self, indices, td_error):
@@ -109,7 +109,7 @@ class Brain:
         return action
 
     def send_memory(self, state, next_state, action, reward, done):
-        exp = Transition(state.__array__(), next_state.__array__(), [action],
+        exp = Transition(state, next_state, [action],
                          [reward], [done])
         self.memory.push(exp)
 
