@@ -38,7 +38,7 @@ def main(cfg: DictConfig):
     if cfg.reset_learning or not checkpoint_path.exists():
         init_episode = 0
     else:
-        init_episode = agent.restart_episode()
+        init_episode = agent.restart_episode
 
     env = env_wrappers(env, cfg, init_episode=init_episode)
 
