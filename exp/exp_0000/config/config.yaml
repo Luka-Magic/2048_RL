@@ -36,7 +36,7 @@ memory_size: 100000
 # multi_step_learning: True
 # n_multi_steps: 3
 double: True
-noisy: True
+noisy: False
 # categorical: False
 # n_atoms: 1
 ######   Leaning   ###############################
@@ -51,6 +51,6 @@ learn_interval: 3
 synchronize_interval: 10000
 
 # exploration rate
-exploration_rate: 0.
+exploration_rate: 1.0
 exploration_rate_decay: 0.999942
-exploration_rate_min: 0.
+exploration_rate_min: 0.1
