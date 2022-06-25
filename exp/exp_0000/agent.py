@@ -272,6 +272,7 @@ class Logger:
         # 変数名どうしよう、logとかつけたらわかりやすそう
         self.episode_steps = 0
         self.episode_reward = 0.0
+        self.episode_max_reward = 0.0
         self.episode_loss = 0.0
         self.episode_q = 0.0
         self.episode_learn_steps = 0
@@ -280,6 +281,7 @@ class Logger:
     def step(self, reward):
         self.episode_steps += 1
         self.episode_reward += reward
+        self.episode_max_reward = max(reward, self.episode_max_reward)
 
     def step_learn(self, loss, q):
         # 一回の学習につき (learn_interval分飛ばしている)
@@ -301,6 +303,7 @@ class Logger:
 
         episode_reward = self.episode_reward / \
             self.episode_steps if self.episode_steps != 0 else 0
+        episode_max_reward = self.episode_max_reward
 
         wandb_dict = dict(
             episode=episode,
@@ -308,16 +311,10 @@ class Logger:
             epsilon=exploration_rate,
             step_per_second=episode_step_per_second,
             reward=episode_reward,
+            max_reward=episode_max_reward,
             length=self.episode_steps,
             average_loss=episode_average_loss,
             average_q=episode_average_q,
-            dead_or_alive=int(info['flag_get']),
-            x_pos=int(info['x_pos']),
-            time=int(info['time'])
         )
-        if info['video'] is not None:
-            wandb_dict['video'] = wandb.Video(
-                info['video'], fps=self.video_save_fps, format='mp4', caption=f'episode: {episode}')
-            wandb.log(wandb_dict)
 
         self._reset_episode_log()
