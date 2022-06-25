@@ -52,5 +52,5 @@ synchronize_interval: 10000
 
 # exploration rate
 exploration_rate: 0.5
-# exploration_rate_decay: 0.999942
-# exploration_rate_min: 0.1
+exploration_rate_decay: 0.999942
+exploration_rate_min: 0.1
