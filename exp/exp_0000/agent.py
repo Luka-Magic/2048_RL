@@ -1,7 +1,6 @@
 from math import gamma
 import random
 import numpy as np
-from pyrsistent import T
 import torch
 from torch import nn
 from torch.cuda.amp import autocast, GradScaler
