@@ -30,8 +30,6 @@ def main(cfg: DictConfig):
     env = gym.make(cfg.environment)
 
     # エージェント
-    print(env.action_space.n)
-
     agent = Agent(cfg, n_actions=env.action_space.n, save_dir=save_dir)
 
     checkpoint_path = save_dir / 'agent_net.ckpt'

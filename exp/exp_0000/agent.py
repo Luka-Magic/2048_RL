@@ -83,9 +83,9 @@ class Brain:
     def _create_model(self, cfg):
         # modelを選べるように改変
         policy_net = Model(
-            self.cfg, self.input_dim, self.n_actions).float().to('cuda')
+            self.input_dim, self.n_actions).float().to('cuda')
         target_net = Model(
-            self.cfg, self.input_dim, self.n_actions).float().to('cuda')
+            self.input_dim, self.n_actions).float().to('cuda')
         return policy_net, target_net
 
     def select_action(self, state):
