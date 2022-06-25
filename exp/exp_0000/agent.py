@@ -41,9 +41,8 @@ class Memory:
 
 
 class Brain:
-    def __init__(self, cfg, n_actions, save_dir):
+    def __init__(self, cfg, n_actions):
         self.n_actions = n_actions
-        self.save_dir = save_dir
         self.input_dim = (cfg.state_channel, cfg.state_height, cfg.state_width)
 
         # init
@@ -176,7 +175,12 @@ class Agent:
         self.burnin = cfg.burnin
         self.learn_interval = cfg.learn_interval
 
-        self.brain = Brain(cfg, n_actions, save_dir)
+        self.save_dir = save_dir
+        self.save_checkpoint_interval = cfg.save_checkpoint_interval
+        self.save_model_interval = cfg.save_model_interval
+
+        self.brain = Brain(cfg, n_actions)
+        
         self.wandb = cfg.wandb
         if self.wandb:
             self.logger = Logger(cfg, self.restart_episode)
@@ -229,33 +233,33 @@ class Agent:
 
         if episode != 0 and episode != self.restart_episode:
             if episode % self.save_checkpoint_interval == 0:
-                self._save_checkpoint(episode)
+                self._save_checkpoint()
             if episode % self.save_model_interval == 0:
-                self._save(episode)
+                self._save()
 
-    def _save_checkpoint(self, episode):
+    def _save_checkpoint(self):
         checkpoint_path = (self.save_dir / f'agent_net.ckpt')
         torch.save(dict(
             model=self.brain.policy_net.state_dict(),
             exploration_rate=self.exploration_rate,
             step=self.step,
-            episode=episode
+            episode=self.episode
         ), checkpoint_path)
         datetime_now = datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
         print(
-            f"Episode {episode} - "
+            f"Episode {self.episode} - "
             f"Step {self.step} - "
             f"Epsilon {self.exploration_rate:.3f} - "
             f"Time {datetime_now}"
         )
 
-    def _save(self, episode):
-        checkpoint_path = (self.save_dir / f'agent_net_{episode}.ckpt')
+    def _save(self):
+        checkpoint_path = (self.save_dir / f'agent_net_{self.episode}.ckpt')
         torch.save(dict(
             model=self.brain.policy_net.state_dict(),
             exploration_rate=self.brain.exploration_rate,
             step=self.step,
-            episode=episode
+            episode=self.episode
         ), checkpoint_path)
 
 
