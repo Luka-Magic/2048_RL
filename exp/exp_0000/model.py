@@ -24,7 +24,7 @@ class Model(nn.Module):
         )
 
     def forward(self, x):
-        x = x.view(x.size(0), -1)
+        x = x.reshape(x.size(0), -1)
         x = self.fc(x)
         values = self.values(x)
         advantages = self.advantages(x)
