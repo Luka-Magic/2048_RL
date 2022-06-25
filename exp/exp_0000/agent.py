@@ -95,7 +95,7 @@ class Brain:
             action = np.random.randint(self.n_actions)
         else:
             # state = state.__array__()
-            state = torch.tensor(state).cuda().unsqueeze(0)
+            state = torch.tensor(state).float().cuda().unsqueeze(0)
             with torch.no_grad():
                 Q = self._get_Q(self.policy_net, state)
             action = torch.argmax(Q, axis=1).item()
