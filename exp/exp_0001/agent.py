@@ -187,8 +187,8 @@ class Brain:
         return action
 
     def send_memory(self, state, next_state, action, reward, done):
-        print(reward)
         if self.multi_step_learning:
+            self.multi_step_trainsitions.append(exp)
             if len(self.multi_step_trainsitions) != self.n_multi_steps:
                 return
             multi_step_reward = 0
@@ -286,7 +286,6 @@ class Agent:
         return action
 
     def observe(self, state, next_state, action, reward, done):
-        print('observe')
         self.brain.send_memory(state, next_state, action, reward, done)
         if self.wandb:
             self.logger.step(reward)
