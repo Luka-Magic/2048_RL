@@ -91,6 +91,7 @@ class PERMemory(Memory):
             indices.append(idx)
         
         weights /= weights.max()
+        print(batch)
         batch = Transition(*map(np.stack, zip(*batch)))
         return (indices, batch, weights)
 
