@@ -129,7 +129,7 @@ class Brain:
             self.exploration_rate = 0.
 
         # momory
-        if cfg.use_per:
+        if cfg.use_PER:
             self.memory = PERMemory(cfg)
         else:
             self.memory = Memory(cfg)
