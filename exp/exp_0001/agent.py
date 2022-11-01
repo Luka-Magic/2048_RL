@@ -44,7 +44,7 @@ class Memory:
         sample_indices = np.random.choice(
             np.arange(len(self.memory)), replace=False, size=self.batch_size)
         batch = [self._decompress(self.memory[idx]) for idx in sample_indices]
-        batch = Transition(*map(torch.stack, zip(*batch)))
+        batch = Transition(*map(np.stack, zip(*batch)))
         return (None, batch, None)
 
     def update(self, indices, td_error):
@@ -89,8 +89,9 @@ class PERMemory(Memory):
             exp = self._decompress(exp)
             batch.append(exp)
             indices.append(idx)
+        
         weights /= weights.max()
-        batch = Transition(*map(torch.stack, zip(*batch)))
+        batch = Transition(*map(np.stack, zip(*batch)))
         return (indices, batch, weights)
 
     def update(self, indices, td_error):
