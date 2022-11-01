@@ -91,7 +91,6 @@ class PERMemory(Memory):
             indices.append(idx)
         
         weights /= weights.max()
-        print(priority, exp)
         batch = Transition(*map(np.stack, zip(*batch)))
         return (indices, batch, weights)
 
@@ -206,6 +205,7 @@ class Brain:
             done = multi_step_done
         exp = Transition([state], [next_state], [action],
                          [reward], [done])
+        print(exp)
         self.memory.push(exp)
 
     def update(self, episode):
