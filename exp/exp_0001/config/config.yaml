@@ -14,7 +14,6 @@ n_actions: 4
 state_height: 4
 state_width: 4
 state_channel: 1
-input_size: (${state_channel}, ${state_height}, ${state_width})
 
 ######   BASIC   ###############################
 # basic

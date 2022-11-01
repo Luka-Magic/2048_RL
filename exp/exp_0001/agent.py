@@ -102,6 +102,9 @@ class Brain:
         self.gamma = cfg.gamma
 
         # model
+        self.input_size = (cfg.state_channel, cfg.state_height, cfg.state_width)
+        self.output_size = cfg.n_actions
+        
         self.use_noisy_model = cfg.use_noisy_model
         self.policy_net, self.target_net = self._create_model(cfg)
         self.synchronize_model()
@@ -142,14 +145,14 @@ class Brain:
         # モデルの同期
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
-    def _create_model(self, cfg):
+    def _create_model(self):
         # modelを選べるように改変
         if self.use_noisy_model:
-            policy_net = Model(cfg).float().to('cuda')
-            target_net = Model(cfg).float().to('cuda')
+            policy_net = Model(self.input_size, self.output_size).float().to('cuda')
+            target_net = Model(self.input_size, self.output_size).float().to('cuda')
         else:
-            policy_net = NoisyModel(cfg).float().to('cuda')
-            target_net = NoisyModel(cfg).float().to('cuda')
+            policy_net = NoisyModel(self.input_size, self.output_size).float().to('cuda')
+            target_net = NoisyModel(self.input_size, self.output_size).float().to('cuda')
         return policy_net, target_net
 
     def select_action(self, state):
@@ -158,7 +161,6 @@ class Brain:
         if np.random.rand() < epsilon:
             action = np.random.randint(self.n_actions)
         else:
-            # state = state.__array__()
             state = torch.tensor(state).float().cuda().unsqueeze(0)
             with torch.no_grad():
                 Q = self._get_Q(self.policy_net, state)

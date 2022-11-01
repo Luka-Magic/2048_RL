@@ -5,9 +5,9 @@ import math
 
 
 class Model(nn.Module):
-    def __init__(self, cfg):
+    def __init__(self, input_size, output_size):
         super().__init__()
-        c, h, w = cfg.input_size  # (1, 4, 4)
+        c, h, w = input_size  # (1, 4, 4)
 
         self.fc = nn.Sequential(
             nn.Linear(c*h*w, 32),
@@ -23,7 +23,7 @@ class Model(nn.Module):
         self.advantages = nn.Sequential(
             nn.Linear(32, 8),
             nn.ReLU(),
-            nn.Linear(8, cfg.n_actions)
+            nn.Linear(8, output_size)
         )
 
     def forward(self, x):
@@ -73,9 +73,9 @@ class FactorizedNoisy(nn.Module):
         return torch.sign(x) * torch.sqrt(torch.abs(x))
     
 class NoisyModel(nn.Module):
-    def __init__(self, cfg):
+    def __init__(self, input_size, output_size):
         super().__init__()
-        c, h, w = cfg.input_size  # (1, 4, 4)
+        c, h, w = input_size  # (1, 4, 4)
 
         self.fc = nn.Sequential(
             nn.Linear(c*h*w, 32),
@@ -91,7 +91,7 @@ class NoisyModel(nn.Module):
         self.advantages = nn.Sequential(
             FactorizedNoisy(32, 8),
             nn.ReLU(),
-            FactorizedNoisy(8, cfg.n_actions)
+            FactorizedNoisy(8, output_size)
         )
 
     def forward(self, x):
