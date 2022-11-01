@@ -39,6 +39,7 @@ def main(cfg: DictConfig):
         init_episode = 0
     else:
         init_episode = agent.restart_episode
+    print(env.action_space.n)
 
     env = env_wrappers(env, cfg, init_episode=init_episode)
 
