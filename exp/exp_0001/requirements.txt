@@ -1,0 +1,4 @@
+gym-2048==0.2.6
+torch
+hydra-core
+wandb
