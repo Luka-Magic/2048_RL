@@ -156,9 +156,7 @@ class Brain:
         return policy_net, target_net
 
     def select_action(self, state):
-        epsilon = 0. if self.noisy else self.exploration_rate
-
-        if np.random.rand() < epsilon:
+        if np.random.rand() < self.exploration_rate:
             action = np.random.randint(self.n_actions)
         else:
             state = torch.tensor(state).float().cuda().unsqueeze(0)
@@ -166,7 +164,7 @@ class Brain:
                 Q = self._get_Q(self.policy_net, state)
             action = torch.argmax(Q, axis=1).item()
 
-        if not self.noisy:
+        if not self.use_noisy_model:
             self.exploration_rate *= self.exploration_rate_decay
             self.exploration_rate = max(
                 self.exploration_rate_min, self.exploration_rate)
