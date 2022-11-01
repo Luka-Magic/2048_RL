@@ -243,7 +243,7 @@ class Brain:
 
 
 class Agent:
-    def __init__(self, cfg):
+    def __init__(self, cfg, save_dir):
         self.cfg = cfg
         self.step = 0
         self.episode = 0
@@ -254,7 +254,7 @@ class Agent:
         self.burnin = cfg.burnin
         self.learn_interval = cfg.learn_interval
 
-        self.save_dir = cfg.save_dir
+        self.save_dir = save_dir
         self.save_checkpoint_interval = cfg.save_checkpoint_interval
         self.save_model_interval = cfg.save_model_interval
 
