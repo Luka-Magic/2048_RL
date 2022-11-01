@@ -106,7 +106,7 @@ class Brain:
         self.output_size = cfg.n_actions
         
         self.use_noisy_model = cfg.use_noisy_model
-        self.policy_net, self.target_net = self._create_model(cfg)
+        self.policy_net, self.target_net = self._create_model()
         self.synchronize_model()
         self.target_net.eval()
 
