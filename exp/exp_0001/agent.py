@@ -162,7 +162,7 @@ class Brain:
 
     def _create_model(self):
         # modelを選べるように改変
-        if self.use_noisy_model:
+        if not self.use_noisy_model:
             policy_net = Model(self.input_size, self.output_size).float().to('cuda')
             target_net = Model(self.input_size, self.output_size).float().to('cuda')
         else:
@@ -235,7 +235,7 @@ class Brain:
         action = torch.tensor(batch.action).to('cuda')
         reward = torch.tensor(batch.reward).to('cuda')
         done = torch.tensor(batch.done).to('cuda')
-        
+
         with torch.no_grad():
             if self.double:
                 next_state_Q = self.policy_net(next_state)
