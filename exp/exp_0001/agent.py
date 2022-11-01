@@ -12,25 +12,39 @@ import time
 import datetime
 import wandb
 import zlib
+import pickle
+
 
 Transition = namedtuple(
     'Transition', ('state', 'next_state', 'action', 'reward', 'done'))
-
 
 class Memory:
     def __init__(self, cfg):
         self.memory_size = cfg.memory_size
         self.memory = deque(maxlen=self.memory_size)
+        self.memory_compress = cfg.memory_compress
+
         self.batch_size = cfg.batch_size
 
+    def _compress(self, exp):
+        if self.memory_compress:
+            exp = zlib.compress(pickle.dumps(exp))
+        return exp
+
+    def _decompress(self, exp):
+        if self.memory_compress:
+            exp = pickle.loads(zlib.decompress(exp))
+        return exp
+
     def push(self, exp):
+        exp = self._compress(exp)
         self.memory.append(exp)
 
     def sample(self, episode):
         sample_indices = np.random.choice(
             np.arange(len(self.memory)), replace=False, size=self.batch_size)
-        batch = [self.memory[idx] for idx in sample_indices]
-        batch = Transition(*map(np.stack, zip(*batch)))
+        batch = [self._decompress(self.memory[idx]) for idx in sample_indices]
+        batch = Transition(*map(torch.stack, zip(*batch)))
         return (None, batch, None)
 
     def update(self, indices, td_error):
