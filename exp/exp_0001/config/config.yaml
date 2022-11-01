@@ -10,6 +10,7 @@ save_checkpoint_interval: 100
 save_model_interval: 500
 
 ######   ENV   #################################
+n_actions: 4
 state_height: 4
 state_width: 4
 state_channel: 1
@@ -36,8 +37,13 @@ priority_beta: 0.4
 multi_step_learning: True
 n_multi_steps: 3
 
+# double Q-learning
 double: True
+
+# noisy nets
 use_noisy_model: True
+
+# categorical
 # categorical: False
 # n_atoms: 1
 
