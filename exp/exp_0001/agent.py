@@ -235,9 +235,7 @@ class Brain:
         action = torch.tensor(batch.action).to('cuda')
         reward = torch.tensor(batch.reward).to('cuda')
         done = torch.tensor(batch.done).to('cuda')
-
-        # non_final_mask = torch.tensor(~.done).to('cuda')
-        # non_final_next_state = torch.stack([next_state for not])
+        
         with torch.no_grad():
             if self.double:
                 next_state_Q = self.policy_net(next_state)
