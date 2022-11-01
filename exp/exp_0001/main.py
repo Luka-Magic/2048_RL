@@ -52,8 +52,10 @@ def main(cfg: DictConfig):
             agent.observe(state, next_state, action, reward, done)
             agent.learn()
             state = next_state
+            print(action, end='->')
             if done:
                 break
+        print('oh')
         agent.log_episode(episode, info)
 
 
