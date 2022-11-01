@@ -188,6 +188,8 @@ class Brain:
 
     def send_memory(self, state, next_state, action, reward, done):
         if self.multi_step_learning:
+            exp = Transition(state, next_state, action,
+                            reward, done)
             self.multi_step_trainsitions.append(exp)
             if len(self.multi_step_trainsitions) != self.n_multi_steps:
                 return
