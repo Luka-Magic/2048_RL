@@ -205,6 +205,7 @@ class Brain:
             done = multi_step_done
         exp = Transition([state], [next_state], [action],
                          [reward], [done])
+        print(0)
         print(exp)
         self.memory.push(exp)
 
