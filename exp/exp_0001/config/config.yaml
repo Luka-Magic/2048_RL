@@ -13,6 +13,7 @@ save_model_interval: 500
 state_height: 4
 state_width: 4
 state_channel: 1
+input_size: (${state_channel}, ${state_height}, ${state_width})
 
 ######   BASIC   ###############################
 # basic
@@ -23,23 +24,24 @@ n_episodes: 250000
 memory_size: 100000
 # memory_compress: False
 
-
+######   RAINBOW   ##############################
 # per
-# PER:
-#   use_PER: True
-# priority_epsilon: 0.0001
-# priority_alpha: 0.6
-# priority_use_IS: True
-# priority_beta: 0.4
+use_PER: True
+priority_epsilon: 0.0001
+priority_alpha: 0.6
+priority_use_IS: True
+priority_beta: 0.4
 
-# # multi-step learning
-# multi_step_learning: True
-# n_multi_steps: 3
+# multi-step learning
+multi_step_learning: True
+n_multi_steps: 3
+
 double: True
-noisy: False
+use_noisy_model: True
 # categorical: False
 # n_atoms: 1
-######   Leaning   ###############################
+
+######   LEARNING   #############################
 # learning
 batch_size: 32
 lr: 0.00025

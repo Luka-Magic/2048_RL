@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.cuda.amp import autocast, GradScaler
-from model import Model
+from model import Model, NoisyModel
 from utils.SumTree import SumTree
 from collections import deque, namedtuple
 import pickle
@@ -40,10 +40,57 @@ class Memory:
         return len(self.memory)
 
 
+class PERMemory(Memory):
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.memory = SumTree(self.memory_size)
+
+        self.n_episodes = cfg.n_episodes
+
+        self.priority_alpha = cfg.priority_alpha
+        self.priority_epsilon = cfg.priority_epsilon
+        self.priority_use_IS = cfg.priority_use_IS
+        self.priority_beta = cfg.priority_beta
+
+    def push(self, exp):
+        exp = self._compress(exp)
+        priority = self.memory.max()
+        if priority <= 0:
+            priority = 1
+        self.memory.add(priority, exp)
+
+    def sample(self, episode):
+        batch = []
+        indices = []
+        weights = np.empty(self.batch_size, dtype='float32')
+        total = self.memory.total()
+        beta = self.priority_beta + \
+            (1 - self.priority_beta) * episode / self.n_episodes
+
+        for i, rand in enumerate(np.random.uniform(0, total, self.batch_size)):
+            idx, priority, exp = self.memory.get(rand)
+
+            weights[i] = (self.memory_size * priority / total) ** (-beta)
+
+            exp = self._decompress(exp)
+            batch.append(exp)
+            indices.append(idx)
+        weights /= weights.max()
+        batch = Transition(*map(torch.stack, zip(*batch)))
+        return (indices, batch, weights)
+
+    def update(self, indices, td_error):
+        if indices != None:
+            return
+
+        for i in range(len(indices)):
+            priority = (
+                td_error[i] + self.priority_epsilon) ** self.priority_alpha
+            self.memory.update(indices[i], priority)
+
+
 class Brain:
-    def __init__(self, cfg, n_actions):
-        self.n_actions = n_actions
-        self.input_dim = (cfg.state_channel, cfg.state_height, cfg.state_width)
+    def __init__(self, cfg):
 
         # init
         self.cfg = cfg
@@ -55,27 +102,41 @@ class Brain:
         self.gamma = cfg.gamma
 
         # model
+        self.use_noisy_model = cfg.use_noisy_model
         self.policy_net, self.target_net = self._create_model(cfg)
         self.synchronize_model()
         self.target_net.eval()
+
+        self.double = cfg.double
+
+        if cfg.loss_fn == 'SmoothL1Loss':
+            self.loss_fn = nn.SmoothL1Loss()
 
         self.scaler = GradScaler()
         if cfg.optimizer == 'Adam':
             self.optimizer = torch.optim.Adam(
                 self.policy_net.parameters(), lr=cfg.lr)
 
-        if cfg.loss_fn == 'SmoothL1Loss':
-            self.loss_fn = nn.SmoothL1Loss()
-
         # exploration
-        self.exploration_rate = cfg.exploration_rate
-        self.exploration_rate_decay = cfg.exploration_rate_decay
-        self.exploration_rate_min = cfg.exploration_rate_min
+        if not self.use_noisy_model:
+            self.exploration_rate = cfg.exploration_rate
+            self.exploration_rate_decay = cfg.exploration_rate_decay
+            self.exploration_rate_min = cfg.exploration_rate_min
+        else:
+            self.exploration_rate = 0.
 
-        self.memory = Memory(cfg)
-
-        self.noisy = cfg.noisy
-        self.double = cfg.double
+        # momory
+        if cfg.use_per:
+            self.memory = PERMemory(cfg)
+        else:
+            self.memory = Memory(cfg)
+        
+        # multi step learning
+        self.multi_step_learning = cfg.multi_step_learning
+        if self.multi_step_learning:
+            self.n_multi_steps = cfg.n_multi_steps
+            self.multi_step_trainsitions = deque(maxlen=self.n_multi_steps)
+            self.gamma = cfg.gamma
 
     def synchronize_model(self):
         # モデルの同期
@@ -83,10 +144,12 @@ class Brain:
 
     def _create_model(self, cfg):
         # modelを選べるように改変
-        policy_net = Model(
-            self.input_dim, self.n_actions).float().to('cuda')
-        target_net = Model(
-            self.input_dim, self.n_actions).float().to('cuda')
+        if self.use_noisy_model:
+            policy_net = Model(cfg).float().to('cuda')
+            target_net = Model(cfg).float().to('cuda')
+        else:
+            policy_net = NoisyModel(cfg).float().to('cuda')
+            target_net = NoisyModel(cfg).float().to('cuda')
         return policy_net, target_net
 
     def select_action(self, state):
@@ -109,6 +172,22 @@ class Brain:
         return action
 
     def send_memory(self, state, next_state, action, reward, done):
+        if self.multi_step_learning:
+            if len(self.multi_step_trainsitions) != self.n_multi_steps:
+                return
+            multi_step_reward = 0
+            multi_step_done = False
+            for i in range(self.n_multi_steps):
+                _, _, _, reward, done = self.multi_step_trainsitions[i]
+                multi_step_reward += reward * self.gamma ** i
+                if done:
+                    multi_step_done = True
+                    break
+            state = self.multi_step_trainsitions[0].state
+            next_state = self.multi_step_trainsitions[-1].next_state
+            action = self.multi_step_trainsitions[-1].action
+            reward = multi_step_reward
+            done = multi_step_done
         exp = Transition([state], [next_state], [action],
                          [reward], [done])
         self.memory.push(exp)
@@ -164,7 +243,7 @@ class Brain:
 
 
 class Agent:
-    def __init__(self, cfg, n_actions, save_dir):
+    def __init__(self, cfg):
         self.cfg = cfg
         self.step = 0
         self.episode = 0
@@ -175,11 +254,11 @@ class Agent:
         self.burnin = cfg.burnin
         self.learn_interval = cfg.learn_interval
 
-        self.save_dir = save_dir
+        self.save_dir = cfg.save_dir
         self.save_checkpoint_interval = cfg.save_checkpoint_interval
         self.save_model_interval = cfg.save_model_interval
 
-        self.brain = Brain(cfg, n_actions)
+        self.brain = Brain(cfg)
 
         self.wandb = cfg.wandb
         if self.wandb:
