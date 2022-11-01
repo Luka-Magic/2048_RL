@@ -4,7 +4,7 @@ reset_learning: False
 environment: '2048-v0'
 
 # wandb setting
-wandb: False
+wandb: True
 wandb_project: 2048_RL_test
 save_checkpoint_interval: 100
 save_model_interval: 500
