@@ -115,6 +115,7 @@ class Brain:
 
         self.n_episodes = cfg.n_episodes
         self.gamma = cfg.gamma
+        self.n_actions = cfg.n_actions
 
         # model
         self.input_size = (cfg.state_channel, cfg.state_height, cfg.state_width)
