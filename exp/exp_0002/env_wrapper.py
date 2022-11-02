@@ -16,6 +16,15 @@ class ChangeObservation(gym.ObservationWrapper):
         new_obs = (self.reference == np.tile(obs, (16, 1, 1))).astype(np.uint8)
         return new_obs
 
+class RewardWrapper(gym.RewardWrapper):
+    def __init__(self, env):
+        super().__init__(env)
+    
+    def reward(self, rew):
+        rew = max(1, rew)
+        rew = np.log2(rew).astype(np.uint8)
+        return rew
+
 def env_wrappers(env, cfg, init_episode):
     env = ChangeObservation(env)
     return env
