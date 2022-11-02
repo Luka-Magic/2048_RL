@@ -1,0 +1,63 @@
+######   SETTING   #############################
+# init setting 
+reset_learning: False
+environment: '2048-v0'
+
+# wandb setting
+wandb: True
+wandb_project: 2048_RL
+save_checkpoint_interval: 1000
+save_model_interval: 1000
+
+######   ENV   #################################
+n_actions: 4
+state_height: 4
+state_width: 4
+state_channel: 16
+
+######   BASIC   ###############################
+# basic
+n_episodes: 10000
+
+######   MEMORY   ##############################
+# memory
+memory_size: 100000
+memory_compress: False
+
+######   RAINBOW   ##############################
+# per
+use_PER: True
+priority_epsilon: 0.0001
+priority_alpha: 0.6
+priority_use_IS: True
+priority_beta: 0.4
+
+# multi-step learning
+multi_step_learning: False
+n_multi_steps: 1
+
+# double Q-learning
+double: True
+
+# noisy nets
+use_noisy_model: False
+
+# categorical
+# categorical: False
+# n_atoms: 1
+
+######   LEARNING   #############################
+# learning
+batch_size: 32
+lr: 0.00025
+optimizer: Adam
+loss_fn: SmoothL1Loss
+gamma: 0.9
+burnin: 10000
+learn_interval: 3
+synchronize_interval: 10000
+
+# exploration rate
+exploration_rate: 0.9
+exploration_rate_decay: # None
+exploration_rate_min: 0.05
