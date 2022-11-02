@@ -181,13 +181,13 @@ class Brain:
             with torch.no_grad():
                 Q = self._get_Q(self.policy_net, state)
             action = torch.argmax(Q, axis=1).item()
-
-        if not self.use_noisy_model:
-            self.exploration_rate *= self.exploration_rate_decay
-            self.exploration_rate = max(
-                self.exploration_rate_min, self.exploration_rate)
-
+        
         return action
+
+    def update_exploration_rate(self):
+        self.exploration_rate *= self.exploration_rate_decay
+        self.exploration_rate = max(
+            self.exploration_rate_min, self.exploration_rate)
 
     def send_memory(self, state, next_state, action, reward, done):
         if self.multi_step_learning:
@@ -323,6 +323,9 @@ class Agent:
         return self.restart_episode
 
     def log_episode(self, episode, info):
+        if not self.brain.use_noisy_model:
+            self.brain.update_exploration_rate()
+        
         if self.wandb == False:
             return
         self.episode = episode
@@ -400,7 +403,7 @@ class Logger:
             episode_average_loss = self.episode_loss / self.episode_learn_steps
             episode_average_q = self.episode_q / self.episode_learn_steps
             episode_step_per_second = self.episode_learn_steps / episode_time  # 一回の学習に何秒かけたか
-        
+
         wandb_dict = dict(
             episode=episode,
             step=step,
