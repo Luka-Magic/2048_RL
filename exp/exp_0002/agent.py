@@ -209,7 +209,7 @@ class Brain:
             action = self.multi_step_trainsitions[-1].action
             reward = multi_step_reward
             done = multi_step_done
-        exp = Transition([state], [next_state], [action],
+        exp = Transition(state, next_state, [action],
                          [reward], [done])
         self.memory.push(exp)
 
