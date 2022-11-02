@@ -8,7 +8,6 @@ class Model(nn.Module):
     def __init__(self, input_size, output_size):
         super().__init__()
         c, h, w = input_size  # (1, 4, 4)
-
         self.fc = nn.Sequential(
             nn.Linear(c*h*w, 32),
             nn.ReLU(),
