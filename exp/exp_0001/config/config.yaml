@@ -17,7 +17,7 @@ state_channel: 1
 
 ######   BASIC   ###############################
 # basic
-n_episodes: 50000
+n_episodes: 10000
 
 ######   MEMORY   ##############################
 # memory
@@ -33,8 +33,8 @@ priority_use_IS: True
 priority_beta: 0.4
 
 # multi-step learning
-multi_step_learning: True
-n_multi_steps: 3
+multi_step_learning: False
+n_multi_steps: 1
 
 # double Q-learning
 double: True
