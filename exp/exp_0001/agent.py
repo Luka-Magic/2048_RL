@@ -293,7 +293,7 @@ class Agent:
     def learn(self):
         if self.step % self.synchronize_interval == 0:
             self.brain.synchronize_model()
-        if self.step % self.burnin + self.restart_episode:
+        if self.step < self.burnin + self.restart_episode:
             return
         if self.step % self.learn_interval != 0:
             return
