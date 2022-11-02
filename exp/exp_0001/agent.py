@@ -368,7 +368,7 @@ class Logger:
     def _reset_episode_log(self):
         # 変数名どうしよう、logとかつけたらわかりやすそう
         self.episode_steps = 0
-        self.episode_reward = 0.0
+        self.episode_sum_rewards = 0.0
         self.episode_max_reward = 0.0
         self.episode_loss = 0.0
         self.episode_q = 0.0
@@ -377,7 +377,7 @@ class Logger:
 
     def step(self, reward):
         self.episode_steps += 1
-        self.episode_reward += reward
+        self.episode_sum_rewards += reward
         self.episode_max_reward = max(reward, self.episode_max_reward)
 
     def step_learn(self, loss, q):
@@ -397,18 +397,14 @@ class Logger:
             episode_average_loss = self.episode_loss / self.episode_learn_steps
             episode_average_q = self.episode_q / self.episode_learn_steps
             episode_step_per_second = self.episode_learn_steps / episode_time  # 一回の学習に何秒かけたか
-
-        episode_reward = self.episode_reward / \
-            self.episode_steps if self.episode_steps != 0 else 0
-        episode_max_reward = self.episode_max_reward
-
+        
         wandb_dict = dict(
             episode=episode,
             step=step,
             epsilon=exploration_rate,
             step_per_second=episode_step_per_second,
-            reward=episode_reward,
-            max_reward=episode_max_reward,
+            sum_rewards=self.episode_sum_rewards,
+            max_reward=self.episode_max_reward,
             length=self.episode_steps,
             average_loss=episode_average_loss,
             average_q=episode_average_q,

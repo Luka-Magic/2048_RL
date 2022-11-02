@@ -78,10 +78,14 @@ class NoisyModel(nn.Module):
         c, h, w = input_size  # (1, 4, 4)
 
         self.fc = nn.Sequential(
-            nn.Linear(c*h*w, 32),
+            nn.Linear(c*h*w, 64),
             nn.ReLU(),
-            nn.Linear(32, 32)
+            nn.Linear(64, 64),
+            nn.ReLU(),
+            nn.Linear(64, 32)
         )
+
+
         self.values = nn.Sequential(
             FactorizedNoisy(32, 8),
             nn.ReLU(),

@@ -5,7 +5,7 @@ environment: '2048-v0'
 
 # wandb setting
 wandb: True
-wandb_project: 2048_RL_test
+wandb_project: 2048_RL
 save_checkpoint_interval: 100
 save_model_interval: 500
 
