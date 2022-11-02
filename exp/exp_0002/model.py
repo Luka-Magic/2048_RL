@@ -32,6 +32,7 @@ class Model(nn.Module):
 
     def forward(self, x):
         x = self.conv(x)
+        x = x.view(x.size(0), -1)
         values = self.values(x)
         advantages = self.advantages(x)
         q = values + (advantages - advantages.mean(dim=1, keepdims=True))
@@ -88,7 +89,6 @@ class NoisyModel(nn.Module):
             nn.ReLU(),
             nn.Conv2d(in_channels=32, out_channels=32, kernel_size=4, stride=1, padding=0)
         )
-        
 
         self.values = nn.Sequential(
             FactorizedNoisy(32, 8),
@@ -104,6 +104,8 @@ class NoisyModel(nn.Module):
 
     def forward(self, x):
         x = self.conv(x)
+        print(x.shape)
+        x = x.view(x.size(0), -1)
         values = self.values(x)
         advantages = self.advantages(x)
         q = values + (advantages - advantages.mean(dim=1, keepdims=True))
