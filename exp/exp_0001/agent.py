@@ -142,7 +142,7 @@ class Brain:
             self.exploration_rate_decay = cfg.exploration_rate_decay
             self.exploration_rate_min = cfg.exploration_rate_min
             if self.exploration_rate_decay is None:
-                self.exploration_rate_decay = np.exp((np.log(self.exploration_rate) - np.log(self.exploration_rate_min)) / self.n_episodes)
+                self.exploration_rate_decay = np.exp((np.log(self.exploration_rate_min) - np.log(self.exploration_rate)) / self.n_episodes)
         else:
             self.exploration_rate = 0.
 
