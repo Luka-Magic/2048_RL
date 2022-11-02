@@ -31,9 +31,7 @@ class Model(nn.Module):
         )
 
     def forward(self, x):
-        print(x.shape)
         x = self.conv(x)
-        print(x.shape)
         x = x.view(x.size(0), -1)
         values = self.values(x)
         advantages = self.advantages(x)
