@@ -1,10 +1,11 @@
 ######   SETTING   #############################
 # init setting 
 reset_learning: False
+env_name: env0001
 environment: '2048-v0'
 
 # wandb setting
-wandb: True
+wandb: False
 wandb_project: 2048_RL
 save_checkpoint_interval: 1000
 save_model_interval: 1000

@@ -11,13 +11,13 @@ from env_wrapper import env_wrappers
 from agent import Agent
 import warnings
 import sys
-sys.path.append('../../env/env0001')
-print(os.listdir('../../'))
-import gym_2048
-print(os.getcwd())
 
 @hydra.main(config_path='config', config_name='config')
 def main(cfg: DictConfig):
+    # 環境をインポート
+    sys.path.append(f'../../env/{cfg.env_name}')
+    import gym_2048
+
     # 設定
     save_dir = Path('/'.join(os.getcwd().split('/')
                     [:-6])) / f"outputs/{os.getcwd().split('/')[-4]}"
@@ -55,6 +55,7 @@ def main(cfg: DictConfig):
             agent.learn()
             state = next_state
             if done:
+                print(info)
                 break
         agent.log_episode(episode, info)
 
