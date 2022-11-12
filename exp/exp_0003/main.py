@@ -12,6 +12,8 @@ from agent import Agent
 import warnings
 import sys
 
+print(os.getcwd())
+
 @hydra.main(config_path='config', config_name='config')
 def main(cfg: DictConfig):
     # 設定
