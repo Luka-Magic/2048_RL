@@ -15,7 +15,6 @@ import sys
 @hydra.main(config_path='config', config_name='config')
 def main(cfg: DictConfig):
     # 環境をインポート
-    print(os.listdir('../../../../../'))
     sys.path.append(f'../../../../../env/{cfg.env_name}')
     import gym_2048
 
@@ -52,11 +51,12 @@ def main(cfg: DictConfig):
         while True:
             action = agent.action(state)
             next_state, reward, done, info = env.step(action)
+            if episode==0:
+                print(info)
             agent.observe(state, next_state, action, reward, done)
             agent.learn()
             state = next_state
             if done:
-                print(info)
                 break
         agent.log_episode(episode, info)
 
