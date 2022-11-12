@@ -56,12 +56,13 @@ class Base2048Env(gym.Env):
     reward, updated_obs = self._slide_left_and_merge(rotated_obs)
     self.board = np.rot90(updated_obs, k=4 - action)
 
+    after_state = self.board.copy()
     # Place one random tile on empty location
     self._place_random_tiles(self.board, count=1)
 
     done = self.is_done()
 
-    return self.board, reward, done, {}
+    return self.board, reward, done, {'after_state': after_state}
 
   def is_done(self):
     copy_board = self.board.copy()
