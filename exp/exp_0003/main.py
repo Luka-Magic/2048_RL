@@ -11,7 +11,7 @@ from env_wrapper import env_wrappers
 from agent import Agent
 import warnings
 import sys
-sys.path.append('../env/env0001/')
+sys.path.append('../env/env0001')
 import gym_2048
 print(os.getcwd())
 
