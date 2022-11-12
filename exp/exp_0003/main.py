@@ -15,8 +15,8 @@ import sys
 @hydra.main(config_path='config', config_name='config')
 def main(cfg: DictConfig):
     # 環境をインポート
-    print(os.getcwd())
-    sys.path.append(f'../../env/{cfg.env_name}')
+    print(os.listdir('../../../../../'))
+    sys.path.append(f'../../../../../env/{cfg.env_name}')
     import gym_2048
 
     # 設定
