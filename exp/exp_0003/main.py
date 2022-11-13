@@ -67,7 +67,7 @@ def main(cfg: DictConfig):
         if episode % cfg.eval_interval == 0:
             print(f'EVAL Start [{episode} / {cfg.n_episodes}]')
             agent.set_mode('eval')
-            for episode in tqdm(range(cfg.n_eval_episodes), total=cfg.n_eval_episodes):
+            for episode in range(cfg.n_eval_episodes):
                 state = env.reset()
                 pre_action = -1
                 action_sequence = 0
@@ -87,6 +87,7 @@ def main(cfg: DictConfig):
                 agent.eval_episode()
             agent.log_eval(episode)
             agent.set_mode('train')
+        print('     EVAL Complete')
 
 
 if __name__ == '__main__':
