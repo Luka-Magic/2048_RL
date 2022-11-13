@@ -65,16 +65,22 @@ def main(cfg: DictConfig):
         agent.log_episode(episode, {})
 
         if episode % cfg.eval_interval:
+            print(f'EVAL Start [{episode} / {cfg.n_episodes}]')
             agent.set_mode('eval')
-            for episode in range(cfg.n_eval_episodes):
+            for episode in tqdm(range(cfg.n_eval_episodes), total=cfg.n_eval_episodes):
                 state = env.reset()
-                step = 0
+                pre_action = -1
+                action_sequence = 0
                 while True:
                     action = agent.eval_action(state)
                     next_state, reward, done, info = env.step(action)
-                    step += 1
-                    if step > 1e+4:
-                        break
+                    if action == pre_action:
+                        action_sequence += 1
+                        if action_sequence == 10:
+                            break
+                    else:
+                        pre_action = action
+                        action_sequence = 0
                     if done:
                         break
                     state = next_state
