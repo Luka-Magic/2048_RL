@@ -129,8 +129,6 @@ class Brain:
         self.synchronize_model()
         self.target_net.eval()
 
-        self.double = cfg.double
-
         if cfg.loss_fn == 'SmoothL1Loss':
             self.loss_fn = nn.SmoothL1Loss()
 
