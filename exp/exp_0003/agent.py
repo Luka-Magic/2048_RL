@@ -3,6 +3,7 @@ import random
 import numpy as np
 import torch
 from torch import nn
+from torchsummary import summary
 from torch.cuda.amp import autocast, GradScaler
 from model import Model
 from utils.sum_tree import SumTree
@@ -164,6 +165,7 @@ class Brain:
     def _create_model(self):
         policy_net = Model(self.input_size, self.output_size).float().to(self.device)
         target_net = Model(self.input_size, self.output_size).float().to(self.device)
+        print(summary(policy_net, (1, 16, 4, 4)))
         return policy_net, target_net
 
     def select_action(self, state, eval=False):
