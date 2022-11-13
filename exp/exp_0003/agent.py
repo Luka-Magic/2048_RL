@@ -201,7 +201,7 @@ class Brain:
         self.optimizer.zero_grad()
         for param in self.policy_net.parameters():
             param.grad.data.clamp_(-1, 1)
-        return loss.detach().cpu(), v.sum()
+        return loss.detach().cpu(), v.mean()
 
     def _loss(self, batch, weights):
         new_batch = []
