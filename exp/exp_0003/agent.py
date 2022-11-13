@@ -402,6 +402,7 @@ class Logger:
 
         self._reset_episode_log()
 
+
 class EvalLogger:
     def __init__(self):
         self.n_episodes = 0
