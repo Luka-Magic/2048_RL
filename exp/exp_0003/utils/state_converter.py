@@ -8,6 +8,8 @@ class StateConverter:
         self.reference[0, :, :] = 0
         self.observation_spape = Box(
             low=0, high=255, shape=(16, 4, 4), dtype=np.uint8)
+        self.width = 4
+        self.height = 4
     
     def convert(self, state):
         new_obs = (self.reference == np.tile(state, (16, 1, 1))).astype(np.uint8)
