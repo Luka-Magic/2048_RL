@@ -52,13 +52,17 @@ class Base2048Env(gym.Env):
     """Rotate board aligned with left action"""
 
     # Align board action with left action
+    state = self.board.copy()
+
     rotated_obs = np.rot90(self.board, k=action)
     reward, updated_obs = self._slide_left_and_merge(rotated_obs)
     self.board = np.rot90(updated_obs, k=4 - action)
 
     after_state = self.board.copy()
     # Place one random tile on empty location
-    self._place_random_tiles(self.board, count=1)
+
+    if not (state == after_state).all():
+        self._place_random_tiles(self.board, count=1)
 
     done = self.is_done()
 
@@ -75,7 +79,6 @@ class Base2048Env(gym.Env):
       _, updated_obs = self._slide_left_and_merge(rotated_obs)
       if not updated_obs.all():
         return False
-
     return True
 
   def reset(self):
