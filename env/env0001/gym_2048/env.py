@@ -62,7 +62,7 @@ class Base2048Env(gym.Env):
 
     done = self.is_done()
 
-    return self.board, after_state, reward, done, {}
+    return self.board, after_state, reward, done
 
   def is_done(self):
     copy_board = self.board.copy()

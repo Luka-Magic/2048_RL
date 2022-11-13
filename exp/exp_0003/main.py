@@ -54,14 +54,14 @@ def main(cfg: DictConfig):
             action = agent.action(state)
             res = env.step(action)
             print(res)
-            next_state, next_after_state, reward, done, info = res
+            next_state, next_after_state, reward, done = res
             agent.observe(after_state, next_after_state, action, reward, done)
             agent.learn()
             state = next_state
             after_state = next_after_state
             if done:
                 break
-        agent.log_episode(episode, info)
+        agent.log_episode(episode, {})
         if episode % cfg.eval_interval:
             pass
 
