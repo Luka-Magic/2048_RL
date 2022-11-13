@@ -67,9 +67,11 @@ class Base2048Env(gym.Env):
 
     # Place one random tile on empty location
 
-    if not (state == after_state).all():
-        self._place_random_tiles(self.board, count=1)
-        info['no_change'] = True
+    if (state == after_state).all():
+      info['no_change'] = True
+    else:
+      self._place_random_tiles(self.board, count=1)
+        
 
     done = self.is_done()
 
