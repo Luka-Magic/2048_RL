@@ -16,20 +16,22 @@ from gym.spaces import Box
 #         new_obs = (self.reference == np.tile(obs, (16, 1, 1))).astype(np.uint8)
 #         return new_obs
 
+
 class AvoidStackWrapper(gym.Wrapper):
-    def __init__(self, env, threshold=10):
+    def __init__(self, env, threshold=50):
         super().__init__(env)
         self.env = env
-        self.no_reward_counter = 0
+        self.no_change_counter = 0
         self.threshold = threshold
         
     def step(self, action):
         next_state, reward, done, info = self.env.step(action)
-        if (next_state == info['after_state']).all():
-            self.no_reward_counter += 1
-            if self.no_reward_counter == self.threshold:
+        if info['no_change']:
+            self.no_change_counter += 1
+            if self.no_change_counter == self.threshold:
                 done = True
         return next_state, reward, done, info
+
 
 class RewardWrapper(gym.RewardWrapper):
     def __init__(self, env):

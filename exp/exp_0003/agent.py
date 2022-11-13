@@ -166,7 +166,7 @@ class Brain:
         target_net = Model(self.input_size, self.output_size).float().to(self.device)
         return policy_net, target_net
 
-    def select_action(self, state, eval=False):        
+    def select_action(self, state, eval=False):
         if np.random.rand() < self.exploration_rate and not eval:
             action = np.random.randint(self.n_actions)
         else:
