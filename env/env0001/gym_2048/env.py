@@ -78,7 +78,6 @@ class Base2048Env(gym.Env):
 
     return True
 
-
   def reset(self):
     """Place 2 tiles on empty board."""
 

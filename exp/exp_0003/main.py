@@ -69,11 +69,12 @@ def main(cfg: DictConfig):
                 while True:
                     action = agent.eval_action(state)
                     next_state, reward, done, info = env.step(action)
+                    if (state == info['after_state']).all():
+                        break
                     if done:
                         break
                 agent.eval_episode()
             agent.log_eval(episode)
-                        
 
 
 if __name__ == '__main__':
