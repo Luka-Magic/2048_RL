@@ -75,6 +75,7 @@ def main(cfg: DictConfig):
                         break
                     if done:
                         break
+                    state = next_state
                 agent.eval_episode()
             agent.log_eval(episode)
 
