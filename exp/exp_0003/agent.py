@@ -406,7 +406,12 @@ class Logger:
 class EvalLogger:
     def __init__(self):
         self.n_episodes = 0
+        self._reset_eval()
         self._reset_episode_log()
+
+    def _reset_eval(self):
+        self.eval_max_reward = 0.0
+        self.eval_sum_rewards = 0.0
 
     def _reset_episode_log(self):
         # 変数名どうしよう、logとかつけたらわかりやすそう
@@ -427,8 +432,9 @@ class EvalLogger:
     def log_eval(self, episode):
         wandb_dict = dict(
             episode = episode,
-            mean_reward = self.eval_sum_reward / self.n_episodes,
-            mean_max_reward = self.episode_max_reward / self.n_episodes
+            mean_reward = self.eval_sum_rewards / self.n_episodes,
+            mean_max_reward = self.eval_max_reward / self.n_episodes
         )
         wandb.log(wandb_dict)
         self._reset_episode_log()
+        self._reset_eval()
