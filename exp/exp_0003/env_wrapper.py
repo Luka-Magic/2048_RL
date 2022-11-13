@@ -41,6 +41,6 @@ class RewardWrapper(gym.RewardWrapper):
         return rew
 
 def env_wrappers(env, cfg, init_episode):
-    env = AvoidStackWrapper(env)
+    # env = AvoidStackWrapper(env)
     env = RewardWrapper(env)
     return env
