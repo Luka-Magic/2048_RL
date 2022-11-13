@@ -65,7 +65,7 @@ def main(cfg: DictConfig):
         agent.log_episode(episode, {})
 
         if episode % cfg.eval_interval == 0:
-            print(f'EVAL Start [{episode} / {cfg.n_episodes}]')
+            print(f'\nEVAL Start [{episode} / {cfg.n_episodes}]')
             agent.set_mode('eval')
             for episode in range(cfg.n_eval_episodes):
                 state = env.reset()
