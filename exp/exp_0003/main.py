@@ -66,7 +66,7 @@ def main(cfg: DictConfig):
 
         if episode % cfg.eval_interval == 0:
             agent.set_mode('eval')
-            for episode in range(cfg.n_eval_episodes):
+            for _ in range(cfg.n_eval_episodes):
                 state = env.reset()
                 pre_action = -1
                 action_sequence = 0
