@@ -64,7 +64,7 @@ def main(cfg: DictConfig):
         
         agent.log_episode(episode, {})
 
-        if episode % cfg.eval_interval:
+        if episode % cfg.eval_interval == 0:
             print(f'EVAL Start [{episode} / {cfg.n_episodes}]')
             agent.set_mode('eval')
             for episode in tqdm(range(cfg.n_eval_episodes), total=cfg.n_eval_episodes):
