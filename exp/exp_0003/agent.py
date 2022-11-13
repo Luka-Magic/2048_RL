@@ -426,6 +426,7 @@ class EvalLogger:
         self.episode_max_reward = 0.0
     
     def step(self, reward):
+        reward = reward[0]
         self.episode_steps += 1
         self.episode_sum_rewards += reward
         self.episode_max_reward = max(reward, self.episode_max_reward)
