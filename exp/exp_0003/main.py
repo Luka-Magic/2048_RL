@@ -36,6 +36,7 @@ def main(cfg: DictConfig):
 
     # エージェント
     agent = Agent(cfg, save_dir)
+    agent.set_mode('train')
 
     checkpoint_path = save_dir / 'agent_net.ckpt'
 
@@ -64,6 +65,7 @@ def main(cfg: DictConfig):
         agent.log_episode(episode, {})
 
         if episode % cfg.eval_interval:
+            agent.set_mode('eval')
             for episode in range(cfg.n_eval_episodes):
                 state = env.reset()
                 step = 0
@@ -78,6 +80,7 @@ def main(cfg: DictConfig):
                     state = next_state
                 agent.eval_episode()
             agent.log_eval(episode)
+            agent.set_mode('train')
 
 
 if __name__ == '__main__':
