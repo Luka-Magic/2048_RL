@@ -74,6 +74,7 @@ def main(cfg: DictConfig):
                 while True:
                     action = agent.eval_action(state)
                     next_state, reward, done, info = env.step(action)
+                    agent.eval_observe(reward)
                     if action == pre_action:
                         action_sequence += 1
                         if action_sequence == 10:
