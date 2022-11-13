@@ -25,7 +25,7 @@ class AvoidStackWrapper(gym.Wrapper):
         
     def step(self, action):
         next_state, reward, done, info = self.env.step(action)
-        if next_state == info['next_after_state']:
+        if next_state == info['after_state']:
             self.no_reward_counter += 1
             if self.no_reward_counter == self.threshold:
                 done = True

@@ -62,7 +62,7 @@ def main(cfg: DictConfig):
                 break
         
         agent.log_episode(episode, {})
-        
+
         if episode % cfg.eval_interval:
             for episode in cfg.n_eval_episodes:
                 state = env.reset()
