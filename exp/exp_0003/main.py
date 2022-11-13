@@ -71,7 +71,7 @@ def main(cfg: DictConfig):
                     action = agent.eval_action(state)
                     next_state, reward, done, info = env.step(action)
                     step += 1
-                    if step > 1e+6:
+                    if step > 1e+4:
                         break
                     if done:
                         break
