@@ -51,7 +51,7 @@ class Base2048Env(gym.Env):
   def step(self, action: int):
     """Rotate board aligned with left action"""
     info= {
-      'after_state': after_state,
+      'after_state': None,
       'no_change': False
       }
 
@@ -63,7 +63,8 @@ class Base2048Env(gym.Env):
     self.board = np.rot90(updated_obs, k=4 - action)
 
     after_state = self.board.copy()
-    
+    info['after_state'] = after_state
+
     # Place one random tile on empty location
 
     if not (state == after_state).all():
