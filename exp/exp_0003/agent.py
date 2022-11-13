@@ -125,7 +125,6 @@ class Brain:
         self.input_size = (cfg.state_channel, cfg.state_height, cfg.state_width)
         self.output_size = cfg.n_actions
         
-        self.use_noisy_model = cfg.use_noisy_model
         self.policy_net, self.target_net = self._create_model()
         self.synchronize_model()
         self.target_net.eval()
@@ -141,14 +140,11 @@ class Brain:
                 self.policy_net.parameters(), lr=cfg.lr)
 
         # exploration
-        if not self.use_noisy_model:
-            self.exploration_rate = cfg.exploration_rate
-            self.exploration_rate_decay = cfg.exploration_rate_decay
-            self.exploration_rate_min = cfg.exploration_rate_min
-            if self.exploration_rate_decay is None:
-                self.exploration_rate_decay = np.exp((np.log(self.exploration_rate_min) - np.log(self.exploration_rate)) / self.n_episodes)
-        else:
-            self.exploration_rate = 0.
+        self.exploration_rate = cfg.exploration_rate
+        self.exploration_rate_decay = cfg.exploration_rate_decay
+        self.exploration_rate_min = cfg.exploration_rate_min
+        if self.exploration_rate_decay is None:
+            self.exploration_rate_decay = np.exp((np.log(self.exploration_rate_min) - np.log(self.exploration_rate)) / self.n_episodes)
 
         # momory
         if cfg.use_PER:
@@ -299,8 +295,7 @@ class Agent:
         return self.restart_episode
 
     def log_episode(self, episode, info):
-        if not self.brain.use_noisy_model:
-            self.brain.update_exploration_rate()
+        self.brain.update_exploration_rate()
         
         if self.wandb == False:
             return
