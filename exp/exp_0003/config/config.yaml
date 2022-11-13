@@ -9,7 +9,9 @@ wandb: True
 wandb_project: 2048_RL
 save_checkpoint_interval: 1000
 save_model_interval: 1000
+
 eval_interval: 1000
+n_eval_episodes: 100
 
 ######   ENV   #################################
 n_actions: 4

@@ -251,6 +251,7 @@ class Agent:
         self.wandb = cfg.wandb
         if self.wandb:
             self.logger = Logger()
+            self.eval_logger = EvalLogger()
 
     def action(self, state):
         self.step += 1
@@ -265,6 +266,10 @@ class Agent:
         self.brain.send_memory(after_state, next_after_state, action, reward, done)
         if self.wandb:
             self.logger.step(reward)
+
+    def eval_observe(self, reward):
+        if self.wandb:
+            self.eval_logger.step(reward)
 
     def learn(self):
         if self.step % self.synchronize_interval == 0:
@@ -311,6 +316,12 @@ class Agent:
                 self._save_checkpoint()
             if episode % self.save_model_interval == 0:
                 self._save()
+
+    def eval_episode(self):
+        self.eval_logger.eval_episode()
+    
+    def log_eval(self, episode):
+        self.eval_logger.log_eval(episode)
 
     def _save_checkpoint(self):
         checkpoint_path = (self.save_dir / f'agent_net.ckpt')
@@ -389,4 +400,34 @@ class Logger:
         )
         wandb.log(wandb_dict)
 
+        self._reset_episode_log()
+
+class EvalLogger:
+    def __init__(self):
+        self.n_episodes = 0
+        self._reset_episode_log()
+
+    def _reset_episode_log(self):
+        # 変数名どうしよう、logとかつけたらわかりやすそう
+        self.episode_steps = 0
+        self.episode_sum_rewards = 0.0
+        self.episode_max_reward = 0.0
+    
+    def step(self, reward):
+        self.episode_steps += 1
+        self.episode_sum_rewards += reward
+        self.episode_max_reward = max(reward, self.episode_max_reward)
+
+    def eval_episode(self):
+        self.n_episodes += 1
+        self.eval_max_reward += self.episode_max_reward
+        self.eval_sum_rewards += self.episode_sum_rewards
+
+    def log_eval(self, episode):
+        wandb_dict = dict(
+            episode = episode,
+            mean_reward = self.eval_sum_reward / self.n_episodes,
+            mean_max_reward = self.episode_max_reward / self.n_episodes
+        )
+        wandb.log(wandb_dict)
         self._reset_episode_log()

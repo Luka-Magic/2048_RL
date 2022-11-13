@@ -60,9 +60,21 @@ def main(cfg: DictConfig):
             after_state = next_after_state
             if done:
                 break
+        
         agent.log_episode(episode, {})
+        
         if episode % cfg.eval_interval:
-            pass
+            for episode in cfg.n_eval_episodes:
+                state = env.reset()
+                while True:
+                    action = agent.eval_action(state)
+                    next_state, reward, done, info = env.step(action)
+                    if done:
+                        break
+                agent.eval_episode()
+            agent.log_eval(episode)
+                        
+
 
 if __name__ == '__main__':
     main()
