@@ -87,7 +87,7 @@ def main(cfg: DictConfig):
                 agent.eval_episode()
             agent.log_eval(episode)
             agent.set_mode('train')
-        print('     EVAL Complete')
+            print('     EVAL Complete')
 
 
 if __name__ == '__main__':
