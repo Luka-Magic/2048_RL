@@ -53,7 +53,8 @@ def main(cfg: DictConfig):
         while True:
             action = agent.action(state)
             next_state, reward, done, info = env.step(action)
-            agent.observe(after_state, info['after_state'], action, reward, done)
+            next_after_state = info['after_state']
+            agent.observe(after_state, next_after_state, action, reward, done)
             agent.learn()
             state = next_state
             after_state = next_after_state
