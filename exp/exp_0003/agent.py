@@ -416,8 +416,9 @@ class EvalLogger:
         self._reset_episode_log()
 
     def _reset_eval(self):
-        self.eval_max_reward = 0.0
+        self.n_episodes = 0
         self.eval_sum_rewards = 0.0
+        self.eval_max_reward = 0.0
 
     def _reset_episode_log(self):
         # 変数名どうしよう、logとかつけたらわかりやすそう
@@ -426,14 +427,13 @@ class EvalLogger:
         self.episode_max_reward = 0.0
     
     def step(self, reward):
-        self.episode_steps += 1
         self.episode_sum_rewards += reward
         self.episode_max_reward = max(reward, self.episode_max_reward)
 
     def eval_episode(self):
         self.n_episodes += 1
-        self.eval_max_reward += self.episode_max_reward
         self.eval_sum_rewards += self.episode_sum_rewards
+        self.eval_max_reward += self.episode_max_reward
 
     def log_eval(self, episode):
         mean_reward = self.eval_sum_rewards / self.n_episodes
