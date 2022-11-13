@@ -26,7 +26,7 @@ n_episodes: 30000
 
 ######   MEMORY   ##############################
 # memory
-memory_size: 10000
+memory_size: 100000
 memory_compress: False
 
 ######   RAINBOW   ##############################

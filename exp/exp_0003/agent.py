@@ -320,15 +320,15 @@ class Agent:
         if episode != 0 and episode != self.restart_episode:
             if episode % self.save_checkpoint_interval == 0:
                 self._save_checkpoint()
-            if episode % self.save_model_interval == 0:
-                self._save()
 
     def eval_episode(self):
         self.eval_logger.eval_episode()
     
     def log_eval(self, episode):
-        self.eval_logger.log_eval(episode)
-
+        update_flag = self.eval_logger.log_eval(episode)
+        if update_flag:
+            self._save()
+        
     def _save_checkpoint(self):
         checkpoint_path = (self.save_dir / f'agent_net.ckpt')
         torch.save(dict(
@@ -346,7 +346,7 @@ class Agent:
         )
 
     def _save(self):
-        checkpoint_path = (self.save_dir / f'agent_net_{self.episode}.ckpt')
+        checkpoint_path = (self.save_dir / f'best_model.ckpt')
         torch.save(dict(
             model=self.brain.policy_net.state_dict(),
             exploration_rate=self.brain.exploration_rate,
@@ -414,6 +414,7 @@ class EvalLogger:
         self.n_episodes = 0
         self._reset_eval()
         self._reset_episode_log()
+        self.best_reward = 0
 
     def _reset_eval(self):
         self.n_episodes = 0
@@ -436,6 +437,7 @@ class EvalLogger:
         self.eval_max_reward += self.episode_max_reward
 
     def log_eval(self, episode):
+        update_flag = False
         mean_reward = self.eval_sum_rewards / self.n_episodes
         mean_max_reward = self.eval_max_reward / self.n_episodes
         wandb_dict = dict(
@@ -447,3 +449,12 @@ class EvalLogger:
         print(f'\n    EVAL [{episode}] - mean_reward: {mean_reward}, mean_reward: {mean_max_reward}')
         self._reset_episode_log()
         self._reset_eval()
+        
+        if self.best_reward < mean_reward:
+            self.best_reward = mean_reward
+            update_flag = True
+        return update_flag
+
+
+
+
