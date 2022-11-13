@@ -6,12 +6,13 @@ class StateConverter:
     def __init__(self):
         self.reference = np.tile(2**np.arange(16), (4, 4, 1)).transpose(2, 1, 0)
         self.reference[0, :, :] = 0
-        self.observation_spape = Box(
-            low=0, high=255, shape=(16, 4, 4), dtype=np.uint8)
         self.width = 4
         self.height = 4
     
     def convert(self, state):
+        print(state)
+        print(self.reference)
+        print(np.tile(state, (16, 1, 1)))
         new_obs = (self.reference == np.tile(state, (16, 1, 1))).astype(np.uint8)
         return new_obs
     
