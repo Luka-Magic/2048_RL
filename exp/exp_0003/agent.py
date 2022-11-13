@@ -5,7 +5,8 @@ import torch
 from torch import nn
 from torch.cuda.amp import autocast, GradScaler
 from model import Model, NoisyModel
-from utils.SumTree import SumTree
+from utils.sum_tree import SumTree
+from utils.state_converter import StateConverter
 from collections import deque, namedtuple
 import pickle
 import time
@@ -17,6 +18,7 @@ import pickle
 
 Transition = namedtuple(
     'Transition', ('state', 'next_state', 'action', 'reward', 'done'))
+
 
 class Memory:
     def __init__(self, cfg):
@@ -44,7 +46,7 @@ class Memory:
         sample_indices = np.random.choice(
             np.arange(len(self.memory)), replace=False, size=self.batch_size)
         batch = [self._decompress(self.memory[idx]) for idx in sample_indices]
-        batch = Transition(*map(np.stack, zip(*batch)))
+        # batch = Transition(*map(np.stack, zip(*batch)))
         return (None, batch, None)
 
     def update(self, indices, td_error):
@@ -91,7 +93,7 @@ class PERMemory(Memory):
             indices.append(idx)
         
         weights /= weights.max()
-        batch = Transition(*map(np.stack, zip(*batch)))
+        # batch = Transition(*map(np.stack, zip(*batch)))
         return (indices, batch, weights)
 
     def update(self, indices, td_error):
@@ -116,6 +118,9 @@ class Brain:
         self.n_episodes = cfg.n_episodes
         self.gamma = cfg.gamma
         self.n_actions = cfg.n_actions
+
+        self.converter = StateConverter()
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         # model
         self.input_size = (cfg.state_channel, cfg.state_height, cfg.state_width)
@@ -164,24 +169,19 @@ class Brain:
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
     def _create_model(self):
-        # modelを選べるように改変
-        if not self.use_noisy_model:
-            policy_net = Model(self.input_size, self.output_size).float().to('cuda')
-            target_net = Model(self.input_size, self.output_size).float().to('cuda')
-        else:
-            policy_net = NoisyModel(self.input_size, self.output_size).float().to('cuda')
-            target_net = NoisyModel(self.input_size, self.output_size).float().to('cuda')
+        policy_net = Model(self.input_size, self.output_size).float().to(self.device)
+        target_net = Model(self.input_size, self.output_size).float().to(self.device)
         return policy_net, target_net
 
-    def select_action(self, state):
-        if np.random.rand() < self.exploration_rate:
+    def select_action(self, state, eval=False):
+        if np.random.rand() < self.exploration_rate and not eval:
             action = np.random.randint(self.n_actions)
         else:
-            state = torch.tensor(state).float().cuda().unsqueeze(0)
+            after_states = [self.converter.convert(self.converter.make_after_state(state, action)) for action in range(self.n_actions)]
+            after_states = torch.from_numpy(np.stack(after_states, axis=0)).float().to(self.device)
             with torch.no_grad():
-                Q = self._get_Q(self.policy_net, state)
-            action = torch.argmax(Q, axis=1).item()
-        
+                v = self.policy_net(after_states)
+            action = torch.argmax(v, axis=0).item()
         return action
 
     def update_exploration_rate(self):
@@ -189,27 +189,8 @@ class Brain:
         self.exploration_rate = max(
             self.exploration_rate_min, self.exploration_rate)
 
-    def send_memory(self, state, next_state, action, reward, done):
-        if self.multi_step_learning:
-            exp = Transition(state, next_state, action,
-                            reward, done)
-            self.multi_step_trainsitions.append(exp)
-            if len(self.multi_step_trainsitions) != self.n_multi_steps:
-                return
-            multi_step_reward = 0
-            multi_step_done = False
-            for i in range(self.n_multi_steps):
-                _, _, _, reward, done = self.multi_step_trainsitions[i]
-                multi_step_reward += reward * self.gamma ** i
-                if done:
-                    multi_step_done = True
-                    break
-            state = self.multi_step_trainsitions[0].state
-            next_state = self.multi_step_trainsitions[-1].next_state
-            action = self.multi_step_trainsitions[-1].action
-            reward = multi_step_reward
-            done = multi_step_done
-        exp = Transition(state, next_state, [action],
+    def send_memory(self, after_state, next_after_state, action, reward, done):
+        exp = Transition(after_state, next_after_state, [action],
                          [reward], [done])
         self.memory.push(exp)
 
@@ -217,7 +198,7 @@ class Brain:
         # メモリからサンプル
         indices, batch, weights = self.memory.sample(episode)
         # サンプルした経験から損失を計算
-        loss, td_error, q = self._loss(batch, weights)
+        loss, td_error, v = self._loss(batch, weights)
         # PERがONの場合はメモリを更新
         self.memory.update(indices, td_error)
         # policy_netを学習
@@ -227,36 +208,28 @@ class Brain:
         self.optimizer.zero_grad()
         for param in self.policy_net.parameters():
             param.grad.data.clamp_(-1, 1)
-        return loss.detach().cpu(), q
-
-    def _get_Q(self, model, x):
-        return model(x)
+        return loss.detach().cpu(), v
 
     def _loss(self, batch, weights):
-        state = torch.tensor(batch.state).to('cuda').float()
-        next_state = torch.tensor(batch.next_state).to('cuda').float()
-        action = torch.tensor(batch.action).to('cuda')
-        reward = torch.tensor(batch.reward).to('cuda')
-        done = torch.tensor(batch.done).to('cuda')
+        batch.state = [self.converter.convert(state) for state in batch.state]
+        batch.next_state = [self.converter.convert(next_state) for next_state in batch.next_state]
+        
+        batch = Transition(*map(np.stack, zip(*batch)))
+
+        state = torch.tensor(batch.state).to(self.device).float()
+        next_state = torch.tensor(batch.next_state).to(self.device).float()
+        action = torch.tensor(batch.action).to(self.device)
+        reward = torch.tensor(batch.reward).to(self.device)
+        done = torch.tensor(batch.done).to(self.device)
 
         with torch.no_grad():
-            if self.double:
-                next_state_Q = self.policy_net(next_state)
-                best_action = torch.argmax(next_state_Q, axis=1)
-                next_Q = self.target_net(next_state)[
-                    np.arange(0, self.batch_size), best_action
-                ]
-            else:
-                next_Q = torch.max(self.target_net(next_state), axis=1)
+            next_v = self.target_net(next_state)
             td_target = (reward + (1. - done.float())
-                         * self.gamma * next_Q).float()
+                         * self.gamma * next_v).float()
 
         with autocast():
-            Q = self.policy_net(state)
-            td_estimate = Q[np.arange(0, self.batch_size), action.squeeze()]
-
+            td_estimate = self.policy_net(state)
             td_error = torch.abs(td_target - td_estimate)
-
             loss = self.loss_fn(td_estimate, td_target)
         return loss, td_error.detach().cpu(), td_estimate.detach().cpu()
 
@@ -287,9 +260,13 @@ class Agent:
         self.step += 1
         action = self.brain.select_action(state)
         return action
-
-    def observe(self, state, next_state, action, reward, done):
-        self.brain.send_memory(state, next_state, action, reward, done)
+    
+    def eval_action(self, state):
+        action = self.brain.select_action(state, eval=True)
+        return action
+    
+    def observe(self, after_state, next_after_state, action, reward, done):
+        self.brain.send_memory(after_state, next_after_state, action, reward, done)
         if self.wandb:
             self.logger.step(reward)
 
@@ -302,10 +279,10 @@ class Agent:
             return
 
         # メモリからサンプリングして学習を行い、損失とqの値を出力
-        loss, q = self.brain.update(self.episode)
+        loss, v = self.brain.update(self.episode)
 
         if self.wandb:
-            self.logger.step_learn(loss, q)
+            self.logger.step_learn(loss, v)
 
     def restart_learning(self, checkpoint_path):
         self._reset_episode_log()
@@ -377,7 +354,7 @@ class Logger:
         self.episode_sum_rewards = 0.0
         self.episode_max_reward = 0.0
         self.episode_loss = 0.0
-        self.episode_q = 0.0
+        self.episode_v = 0.0
         self.episode_learn_steps = 0
         self.episode_start_time = self.episode_last_time
 
@@ -386,22 +363,22 @@ class Logger:
         self.episode_sum_rewards += reward
         self.episode_max_reward = max(reward, self.episode_max_reward)
 
-    def step_learn(self, loss, q):
+    def step_learn(self, loss, v):
         # 一回の学習につき (learn_interval分飛ばしている)
         self.episode_learn_steps += 1
         self.episode_loss += loss
-        self.episode_q += q
+        self.episode_v += v
 
     def log_episode(self, step, episode, exploration_rate, info):
         self.episode_last_time = time.time()
         episode_time = self.episode_last_time - self.episode_start_time
         if self.episode_learn_steps == 0:
             episode_average_loss = 0
-            episode_average_q = 0
+            episode_average_v = 0
             episode_step_per_second = 0
         else:
             episode_average_loss = self.episode_loss / self.episode_learn_steps
-            episode_average_q = self.episode_q / self.episode_learn_steps
+            episode_average_v = self.episode_v / self.episode_learn_steps
             episode_step_per_second = self.episode_learn_steps / episode_time  # 一回の学習に何秒かけたか
 
         wandb_dict = dict(
@@ -413,7 +390,7 @@ class Logger:
             max_reward=self.episode_max_reward,
             length=self.episode_steps,
             average_loss=episode_average_loss,
-            average_q=episode_average_q,
+            average_v=episode_average_v,
         )
         wandb.log(wandb_dict)
 

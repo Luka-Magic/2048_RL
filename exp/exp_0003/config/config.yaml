@@ -9,6 +9,7 @@ wandb: False
 wandb_project: 2048_RL
 save_checkpoint_interval: 1000
 save_model_interval: 1000
+eval_interval: 1000
 
 ######   ENV   #################################
 n_actions: 4
@@ -35,18 +36,8 @@ priority_use_IS: True
 priority_beta: 0.4
 
 # multi-step learning
-multi_step_learning: True
-n_multi_steps: 3
-
-# double Q-learning
-double: True
-
-# noisy nets
-use_noisy_model: True
-
-# categorical
-# categorical: False
-# n_atoms: 1
+multi_step_learning: False
+n_multi_steps: 1
 
 ######   LEARNING   #############################
 # learning

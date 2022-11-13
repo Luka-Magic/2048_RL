@@ -11,6 +11,7 @@ from env_wrapper import env_wrappers
 from agent import Agent
 import warnings
 import sys
+import numpy as np
 
 @hydra.main(config_path='config', config_name='config')
 def main(cfg: DictConfig):
@@ -48,18 +49,19 @@ def main(cfg: DictConfig):
     # 学習
     for episode in tqdm(range(init_episode, cfg.n_episodes)):
         state = env.reset()
+        after_state = np.zeros_like(state)
         while True:
             action = agent.action(state)
-            next_state, reward, done, info = env.step(action)
-            if episode==0:
-                print(info)
-            agent.observe(state, next_state, action, reward, done)
+            next_state, next_after_state, reward, done, info = env.step(action)
+            agent.observe(after_state, next_after_state, action, reward, done)
             agent.learn()
             state = next_state
+            after_state = next_after_state
             if done:
                 break
         agent.log_episode(episode, info)
-
+        if episode % cfg.eval_interval:
+            pass
 
 if __name__ == '__main__':
     main()
