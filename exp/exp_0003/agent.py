@@ -204,10 +204,13 @@ class Brain:
         return loss.detach().cpu(), v
 
     def _loss(self, batch, weights):
-        batch.state = [self.converter.convert(state) for state in batch.state]
-        batch.next_state = [self.converter.convert(next_state) for next_state in batch.next_state]
+        new_batch = []
+        for exp in batch:
+            state = self.converter.convert(exp.state)
+            next_state = self.converter.convert(exp.next_state)
+            new_batch.append(Transition(state, next_state, exp.action, exp.reward, exp.done))
         
-        batch = Transition(*map(np.stack, zip(*batch)))
+        batch = Transition(*map(np.stack, zip(*new_batch)))
 
         state = torch.tensor(batch.state).to(self.device).float()
         next_state = torch.tensor(batch.next_state).to(self.device).float()
