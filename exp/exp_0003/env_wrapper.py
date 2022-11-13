@@ -24,12 +24,12 @@ class AvoidStackWrapper(gym.Wrapper):
         self.threshold = threshold
         
     def step(self, action):
-        next_state, reward, done, info = self.env.step(action)
-        if reward == 0:
+        next_state, next_after_state, reward, done, info = self.env.step(action)
+        if next_state == next_after_state:
             self.no_reward_counter += 1
             if self.no_reward_counter == self.threshold:
                 done = True
-        return next_state, reward, done, info
+        return next_state, next_after_state, reward, done, info
 
 class RewardWrapper(gym.RewardWrapper):
     def __init__(self, env):
