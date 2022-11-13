@@ -10,9 +10,6 @@ class StateConverter:
         self.height = 4
     
     def convert(self, state):
-        print(state)
-        print(self.reference)
-        print(np.tile(state, (16, 1, 1)))
         new_obs = (self.reference == np.tile(state, (16, 1, 1))).astype(np.uint8)
         return new_obs
     
