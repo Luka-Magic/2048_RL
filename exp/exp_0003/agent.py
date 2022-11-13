@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.cuda.amp import autocast, GradScaler
-from model import Model, NoisyModel
+from model import Model
 from utils.sum_tree import SumTree
 from utils.state_converter import StateConverter
 from collections import deque, namedtuple
@@ -108,7 +108,6 @@ class PERMemory(Memory):
 
 class Brain:
     def __init__(self, cfg):
-
         # init
         self.cfg = cfg
         self.wandb = cfg.wandb
