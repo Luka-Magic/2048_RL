@@ -66,10 +66,12 @@ def main(cfg: DictConfig):
         if episode % cfg.eval_interval:
             for episode in range(cfg.n_eval_episodes):
                 state = env.reset()
+                step = 0
                 while True:
                     action = agent.eval_action(state)
                     next_state, reward, done, info = env.step(action)
-                    if (state == info['after_state']).all():
+                    step += 1
+                    if step > 1e+6:
                         break
                     if done:
                         break
