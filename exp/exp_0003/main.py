@@ -52,7 +52,9 @@ def main(cfg: DictConfig):
         after_state = np.zeros_like(state)
         while True:
             action = agent.action(state)
-            next_state, next_after_state, reward, done, info = env.step(action)
+            res = env.step(action)
+            print(res)
+            next_state, next_after_state, reward, done, info = res
             agent.observe(after_state, next_after_state, action, reward, done)
             agent.learn()
             state = next_state
