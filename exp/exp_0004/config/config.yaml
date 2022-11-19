@@ -10,7 +10,7 @@ wandb_project: 2048_RL
 save_checkpoint_interval: 1000
 save_model_interval: 1000
 
-eval_interval: 5000
+eval_interval: 500
 n_eval_episodes: 100
 
 ######   ENV   #################################
@@ -22,7 +22,7 @@ state_channel: 16
 
 ######   BASIC   ###############################
 # basic
-n_episodes: 100000
+n_episodes: 30000
 
 ######   MEMORY   ##############################
 # memory

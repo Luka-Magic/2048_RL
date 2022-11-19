@@ -30,6 +30,7 @@ class AvoidStackWrapper(gym.Wrapper):
             self.no_change_counter += 1
             if self.no_change_counter == self.threshold:
                 done = True
+                print('no_change!')
         return next_state, reward, done, info
 
 
@@ -44,5 +45,5 @@ class RewardWrapper(gym.RewardWrapper):
 
 def env_wrappers(env, cfg, init_episode):
     env = AvoidStackWrapper(env)
-    env = RewardWrapper(env)
+    # env = RewardWrapper(env)
     return env
