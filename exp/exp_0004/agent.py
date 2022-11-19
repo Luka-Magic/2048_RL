@@ -330,8 +330,8 @@ class Agent:
             if episode % self.save_checkpoint_interval == 0:
                 self._save_checkpoint()
 
-    def eval_episode(self):
-        self.eval_logger.eval_episode()
+    def eval_episode(self, episode, info):
+        self.eval_logger.eval_episode(episode, info)
     
     def log_eval(self, episode):
         update_flag = self.eval_logger.log_eval(episode)
@@ -408,7 +408,7 @@ class Logger:
             epsilon=exploration_rate,
             step_per_second=episode_step_per_second,
             sum_rewards=self.episode_sum_rewards,
-            max_reward=self.episode_max_reward,
+            max_reward=info['max_score'],
             length=self.episode_steps,
             average_loss=episode_average_loss,
             average_v=episode_average_v,
@@ -420,7 +420,6 @@ class Logger:
 
 class EvalLogger:
     def __init__(self):
-        self.n_episodes = 0
         self._reset_eval()
         self._reset_episode_log()
         self.best_reward = 0
@@ -438,12 +437,11 @@ class EvalLogger:
     
     def step(self, reward):
         self.episode_sum_rewards += reward
-        self.episode_max_reward = max(reward, self.episode_max_reward)
 
-    def eval_episode(self):
+    def eval_episode(self, episode, info):
         self.n_episodes += 1
         self.eval_sum_rewards += self.episode_sum_rewards
-        self.eval_max_reward += self.episode_max_reward
+        self.eval_max_reward += info['max_score']
 
     def log_eval(self, episode):
         update_flag = False

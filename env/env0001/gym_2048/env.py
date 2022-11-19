@@ -52,7 +52,8 @@ class Base2048Env(gym.Env):
     """Rotate board aligned with left action"""
     info= {
       'after_state': None,
-      'no_change': False
+      'no_change': False,
+      'max_score': -1
       }
 
     # Align board action with left action
@@ -73,6 +74,8 @@ class Base2048Env(gym.Env):
       self._place_random_tiles(self.board, count=1)
 
     done = self.is_done()
+    if done:
+      info['max_score'] = self.board.max()
 
     return self.board, reward, done, info
 
@@ -84,7 +87,7 @@ class Base2048Env(gym.Env):
 
     for action in [0, 1, 2, 3]:
       rotated_obs = np.rot90(copy_board, k=action)
-      _, updated_obs = self._slide_left_and_merge(rotated_obs)
+      _, updated_obs, _ = self._slide_left_and_merge(rotated_obs)
       if not updated_obs.all():
         return False
     return True

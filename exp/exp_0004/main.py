@@ -62,7 +62,7 @@ def main(cfg: DictConfig):
             if done:
                 break
 
-        agent.log_episode(episode, {})
+        agent.log_episode(episode, info)
 
         if episode % cfg.eval_interval == 0:
             agent.set_mode('eval')
@@ -76,13 +76,14 @@ def main(cfg: DictConfig):
                     if info['no_change']:
                         no_change_counter += 1
                         if no_change_counter == 50:
+                            print('no changeeeeeee!')
                             break
                     else:
                         no_change_counter = 0
                     if done:
                         break
                     state = next_state
-                agent.eval_episode()
+                agent.eval_episode(episode, info)
             agent.log_eval(episode)
             agent.set_mode('train')
 
