@@ -183,6 +183,7 @@ class Brain:
             after_states = torch.from_numpy(np.stack(after_states, axis=0)).float().to(self.device)
             with torch.no_grad():
                 v = self.policy_net(after_states)
+            print(v.shape)
             action = torch.argmax(v, axis=0).item()
         return action
 
