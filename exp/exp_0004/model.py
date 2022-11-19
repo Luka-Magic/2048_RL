@@ -9,17 +9,17 @@ class Model(nn.Module):
         super().__init__()
         c, h, w = input_size  # (16, 4, 4)
         self.conv = nn.Sequential(
-            nn.Conv2d(in_channels=c, out_channels=128, kernel_size=2, stride=1, padding=0),
+            nn.Conv2d(in_channels=c, out_channels=256, kernel_size=2, stride=1, padding=0),
             nn.ReLU(),
-            nn.Conv2d(in_channels=128, out_channels=64, kernel_size=2, stride=1, padding=0),
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=2, stride=1, padding=0),
         )
 
         self.values = nn.Sequential(
-            nn.Linear(256, 128),
+            nn.Linear(2048, 1024),
             nn.ReLU(),
-            nn.Linear(128, 64),
+            nn.Linear(1024, 256),
             nn.ReLU(),
-            nn.Linear(64, 1)
+            nn.Linear(256, 1)
         )
 
     def forward(self, x):
