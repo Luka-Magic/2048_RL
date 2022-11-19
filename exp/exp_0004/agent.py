@@ -448,9 +448,13 @@ class EvalLogger:
         self.n_episodes += 1
         self.eval_sum_rewards += self.episode_sum_rewards
         self.eval_max_reward += info['max_score']
+        self._reset_episode_log()
+        
 
     def log_eval(self, episode):
         update_flag = False
+        print(self.eval_sum_rewards)
+        print(self.n_episodes)
         mean_reward = self.eval_sum_rewards / self.n_episodes
         mean_max_reward = self.eval_max_reward / self.n_episodes
         wandb_dict = dict(
