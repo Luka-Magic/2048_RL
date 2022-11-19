@@ -68,18 +68,10 @@ def main(cfg: DictConfig):
             agent.set_mode('eval')
             for _ in range(cfg.n_eval_episodes):
                 state = env.reset()
-                no_change_counter = 0
                 while True:
                     action = agent.eval_action(state)
                     next_state, reward, done, info = env.step(action)
                     agent.eval_observe(reward)
-                    if info['no_change']:
-                        no_change_counter += 1
-                        if no_change_counter == 50:
-                            print('no changeeeeeee!')
-                            break
-                    else:
-                        no_change_counter = 0
                     if done:
                         break
                     state = next_state
