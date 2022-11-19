@@ -87,7 +87,7 @@ class Base2048Env(gym.Env):
 
     for action in [0, 1, 2, 3]:
       rotated_obs = np.rot90(copy_board, k=action)
-      _, updated_obs, _ = self._slide_left_and_merge(rotated_obs)
+      _, updated_obs = self._slide_left_and_merge(rotated_obs)
       if not updated_obs.all():
         return False
     return True
