@@ -173,7 +173,7 @@ class Brain:
         action_candidates = []
         for action in range(self.n_actions):
             after_state, _, no_change = self.converter.make_after_state(state, action)
-            after_states.append(after_state)
+            after_states.append(self.converter.convert(after_state))
             if not no_change:
                 action_candidates.append(action)
 
