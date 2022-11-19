@@ -182,9 +182,8 @@ class Brain:
         else:
             after_states = torch.from_numpy(np.stack(after_states, axis=0)).float().to(self.device)
             with torch.no_grad():
-                v = self.policy_net(after_states)
-            print(v.shape)
-            action = torch.argmax(v, axis=0).item()
+                v = self.policy_net(after_states).squeeze()[action_candidates]
+            action = torch.argmax(v).item()
         return action
 
     def update_exploration_rate(self):
