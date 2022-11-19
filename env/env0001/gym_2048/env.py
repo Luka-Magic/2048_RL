@@ -71,7 +71,6 @@ class Base2048Env(gym.Env):
       info['no_change'] = True
     else:
       self._place_random_tiles(self.board, count=1)
-        
 
     done = self.is_done()
 

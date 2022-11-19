@@ -169,10 +169,17 @@ class Brain:
         return policy_net, target_net
 
     def select_action(self, state, eval=False):
+        after_states = []
+        action_candidates = []
+        for action in range(self.n_actions):
+            after_state, _, no_change = self.converter.make_after_state(state, action)
+            after_states.append(after_state)
+            if not no_change:
+                action_candidates.append(action)
+
         if np.random.rand() < self.exploration_rate and not eval:
-            action = np.random.randint(self.n_actions)
+            action = random.choice(action_candidates)
         else:
-            after_states = [self.converter.convert(self.converter.make_after_state(state, action)[0]) for action in range(self.n_actions)]
             after_states = torch.from_numpy(np.stack(after_states, axis=0)).float().to(self.device)
             with torch.no_grad():
                 v = self.policy_net(after_states)
