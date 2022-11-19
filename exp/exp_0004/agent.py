@@ -288,9 +288,9 @@ class Agent:
         if self.wandb:
             self.logger.step(reward, info)
 
-    def eval_observe(self, reward):
+    def eval_observe(self, reward, info):
         if self.wandb:
-            self.eval_logger.step(reward)
+            self.eval_logger.step(reward, info)
 
     def learn(self):
         if self.step % self.synchronize_interval == 0:

@@ -71,7 +71,7 @@ def main(cfg: DictConfig):
                 while True:
                     action = agent.eval_action(state)
                     next_state, reward, done, info = env.step(action)
-                    agent.eval_observe(reward)
+                    agent.eval_observe(reward, info)
                     if done:
                         break
                     state = next_state
