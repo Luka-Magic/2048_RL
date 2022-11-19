@@ -25,6 +25,7 @@ class Model(nn.Module):
         )
 
     def forward(self, x):
+        print(x.shape)
         x = self.conv(x)
         x = x.view(x.size(0), -1)
         v = self.values(x)
