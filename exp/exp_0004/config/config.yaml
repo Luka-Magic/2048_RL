@@ -43,7 +43,7 @@ n_multi_steps: 1
 
 ######   LEARNING   #############################
 # learning
-batch_size: 32
+batch_size: 128
 lr: 0.00025
 optimizer: Adam
 loss_fn: SmoothL1Loss
@@ -53,6 +53,6 @@ learn_interval: 3
 synchronize_interval: 10000
 
 # exploration rate
-exploration_rate: 0.9
+exploration_rate: 0.95
 exploration_rate_decay: # None
 exploration_rate_min: 0.05

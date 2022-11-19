@@ -53,25 +53,25 @@ class Base2048Env(gym.Env):
     info= {
       'after_state': None,
       'no_change': False,
-      'max_score': -1
+      'max_score': -1,
+      'score': -1
       }
 
     # Align board action with left action
     state = self.board.copy()
 
     rotated_obs = np.rot90(self.board, k=action)
-    reward, updated_obs = self._slide_left_and_merge(rotated_obs)
+    score, updated_obs = self._slide_left_and_merge(rotated_obs)
     self.board = np.rot90(updated_obs, k=4 - action)
 
+    info['score'] = score
+    reward = score
     after_state = self.board.copy()
     info['after_state'] = after_state
 
     # Place one random tile on empty location
 
-    if (state == after_state).all():
-      info['no_change'] = True
-    else:
-      self._place_random_tiles(self.board, count=1)
+    self._place_random_tiles(self.board, count=1)
 
     done = self.is_done()
     if done:

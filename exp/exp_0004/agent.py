@@ -283,10 +283,10 @@ class Agent:
         action = self.brain.select_action(state, eval=True)
         return action
     
-    def observe(self, after_state, next_after_state, action, reward, done):
+    def observe(self, after_state, next_after_state, action, reward, done, info):
         self.brain.send_memory(after_state, next_after_state, action, reward, done)
         if self.wandb:
-            self.logger.step(reward)
+            self.logger.step(reward, info)
 
     def eval_observe(self, reward):
         if self.wandb:
@@ -379,16 +379,18 @@ class Logger:
         # 変数名どうしよう、logとかつけたらわかりやすそう
         self.episode_steps = 0
         self.episode_sum_rewards = 0.0
-        self.episode_max_reward = 0.0
+        self.episode_sum_score = 0.0
+        self.episode_max_score = 0.0
         self.episode_loss = 0.0
         self.episode_v = 0.0
         self.episode_learn_steps = 0
         self.episode_start_time = self.episode_last_time
 
-    def step(self, reward):
+    def step(self, reward, info):
         self.episode_steps += 1
         self.episode_sum_rewards += reward
-        self.episode_max_reward = max(reward, self.episode_max_reward)
+        self.episode_sum_score += info['score']
+        self.episode_max_score = max(info['score'], self.episode_max_score)
 
     def step_learn(self, loss, v):
         # 一回の学習につき (learn_interval分飛ばしている)
@@ -414,7 +416,8 @@ class Logger:
             epsilon=exploration_rate,
             step_per_second=episode_step_per_second,
             sum_rewards=self.episode_sum_rewards,
-            max_reward=info['max_score'],
+            game_score = self.episode_sum_score,
+            max_score=info['max_score'],
             length=self.episode_steps,
             average_loss=episode_average_loss,
             average_v=episode_average_v,
@@ -433,37 +436,41 @@ class EvalLogger:
     def _reset_eval(self):
         self.n_episodes = 0
         self.eval_sum_rewards = 0.0
-        self.eval_max_reward = 0.0
+        self.eval_sum_score = 0.0
+        self.eval_max_score = 0.0
 
     def _reset_episode_log(self):
         # 変数名どうしよう、logとかつけたらわかりやすそう
         self.episode_steps = 0
         self.episode_sum_rewards = 0.0
-        self.episode_max_reward = 0.0
+        self.episode_sum_score = 0.0
+        self.episode_max_score = 0.0
     
-    def step(self, reward):
+    def step(self, reward, info):
         self.episode_sum_rewards += reward
-
+        self.episode_sum_score += info['score']
+    
     def eval_episode(self, episode, info):
         self.n_episodes += 1
         self.eval_sum_rewards += self.episode_sum_rewards
-        self.eval_max_reward += info['max_score']
+        self.eval_sum_score += self.episode_sum_score
+        self.eval_max_score += info['max_score']
         self._reset_episode_log()
         
 
     def log_eval(self, episode):
         update_flag = False
-        print(self.eval_sum_rewards)
-        print(self.n_episodes)
         mean_reward = self.eval_sum_rewards / self.n_episodes
-        mean_max_reward = self.eval_max_reward / self.n_episodes
+        mean_game_score = self.eval_sum_score / self.n_episodes
+        mean_max_score = self.eval_max_score / self.n_episodes
         wandb_dict = dict(
             episode = episode,
+            mean_game_score = mean_game_score,
             mean_reward = mean_reward,
-            mean_max_reward = mean_max_reward,
+            mean_max_score = mean_max_score,
         )
         wandb.log(wandb_dict)
-        print(f'\n    EVAL [{episode}] - mean_reward: {mean_reward}, mean_max_reward: {mean_max_reward}')
+        print(f'\n    EVAL [{episode}] - mean_reward: {mean_reward}, mean_max_score: {mean_max_score}')
         self._reset_episode_log()
         self._reset_eval()
         
