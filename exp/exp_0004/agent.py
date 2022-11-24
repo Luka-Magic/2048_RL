@@ -168,15 +168,9 @@ class Brain:
         print(summary(policy_net, (16, 4, 4)))
         return policy_net, target_net
 
-    def select_action(self, state, eval=False):
-        after_states = []
-        can_actions = []
 
-        for action in range(self.n_actions):
-            after_state, _, no_change = self.converter.make_after_state(state, action)
-            after_states.append(self.converter.convert(after_state))
-            if not no_change:
-                can_actions.append(action)
+    def select_action(self, state, eval=False):
+        after_states, can_actions = self.converter.make_after_states(state, action)
 
         if np.random.rand() < self.exploration_rate and not eval:
             action = random.choice(can_actions)
@@ -184,12 +178,7 @@ class Brain:
             after_states = torch.from_numpy(np.stack(after_states, axis=0)).float().to(self.device)
             with torch.no_grad():
                 v = self.policy_net(after_states).squeeze().detach().cpu().numpy()
-            action = -1
-            max_v = -float('inf')
-            for can_action in can_actions:
-                if max_v < v[can_action]:
-                    max_v = v[can_action]
-                    action = can_action
+            action = can_actions[torch.argmax(v, axis=0).item()]
         return action
 
     def update_exploration_rate(self):
@@ -354,7 +343,7 @@ class Agent:
         ), checkpoint_path)
         datetime_now = datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
         print(
-            f"Episode {self.episode} - "
+            f"\nEpisode {self.episode} - "
             f"Step {self.step} - "
             f"Epsilon {self.brain.exploration_rate:.3f} - "
             f"Time {datetime_now}"

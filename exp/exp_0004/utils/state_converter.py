@@ -13,14 +13,18 @@ class StateConverter:
         new_obs = (self.reference == np.tile(state, (16, 1, 1))).astype(np.uint8)
         return new_obs
     
-    def make_after_state(self, state, action):
-        no_change = False
-        rotated_state = np.rot90(state, k=action)
-        reward, updated_state = self._slide_left_and_merge(rotated_state)
-        after_state = np.rot90(updated_state, k=4-action)
-        if (state == after_state).all():
-            no_change = True
-        return after_state, reward, no_change
+    def make_after_states(self, state):
+        after_states = []
+        can_actions = []
+        copy_board = state.copy()
+        for action in [0, 1, 2, 3]:
+            rotated_obs = np.rot90(copy_board, k=action)
+            _, updated_obs = self._slide_left_and_merge(rotated_obs)
+            after_state = np.rot90(updated_obs, k=4 - action)
+            if not updated_obs.all():
+                can_actions.append(action)
+                after_states.append(self.convert(after_state))
+        return after_states, can_actions
     
     def _slide_left_and_merge(self, board):
         """Slide tiles on a grid to the left and merge."""
