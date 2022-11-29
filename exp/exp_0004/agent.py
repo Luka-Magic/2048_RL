@@ -170,7 +170,7 @@ class Brain:
 
 
     def select_action(self, state, eval=False):
-        after_states, can_actions = self.converter.make_after_states(state, action)
+        after_states, can_actions = self.converter.make_after_states(state)
 
         if np.random.rand() < self.exploration_rate and not eval:
             action = random.choice(can_actions)
