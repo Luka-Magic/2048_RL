@@ -177,7 +177,7 @@ class Brain:
         else:
             after_states = torch.from_numpy(np.stack(after_states, axis=0)).float().to(self.device)
             with torch.no_grad():
-                v = self.policy_net(after_states).squeeze().detach().cpu().numpy()
+                v = self.policy_net(after_states).squeeze(-1)
             action = can_actions[torch.argmax(v, axis=0).item()]
         return action
 
