@@ -168,7 +168,6 @@ class Brain:
         print(summary(policy_net, (16, 4, 4)))
         return policy_net, target_net
 
-
     def select_action(self, state, eval=False):
         after_states, can_actions = self.converter.make_after_states(state)
 
@@ -182,6 +181,8 @@ class Brain:
         return action
 
     def update_exploration_rate(self):
+        if self.exploration_rate_decay is None:
+            return
         self.exploration_rate *= self.exploration_rate_decay
         self.exploration_rate = max(
             self.exploration_rate_min, self.exploration_rate)
