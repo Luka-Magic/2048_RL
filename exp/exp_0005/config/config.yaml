@@ -26,7 +26,7 @@ n_episodes: 100000
 
 ######   MEMORY   ##############################
 # memory
-memory_size: 10
+memory_size: 100000
 memory_compress: False
 
 ######   RAINBOW   ##############################
@@ -43,14 +43,14 @@ n_multi_steps: 1
 
 ######   LEARNING   #############################
 # learning
-batch_size: 1
+batch_size: 128
 lr: 0.00025
 optimizer: Adam
 loss_fn: SmoothL1Loss
 gamma: 0.9
 burnin: 10000
-learn_interval: 1
-synchronize_interval: 100
+learn_interval: 3
+synchronize_interval: 10000
 
 # exploration rate
 exploration_rate: 0.
