@@ -172,11 +172,11 @@ class Brain:
         if np.random.rand() < self.exploration_rate and not eval:
             action = np.random.randint(self.n_actions)
         else:
-            after_states = [self.converter.convert(self.converter.make_after_state(state, action)[0]) for action in range(self.n_actions)]
+            after_states, can_actions = self.converter.make_after_states(state)
             after_states = torch.from_numpy(np.stack(after_states, axis=0)).float().to(self.device)
             with torch.no_grad():
                 v = self.policy_net(after_states)
-            action = torch.argmax(v, axis=0).item()
+            action = can_actions[torch.argmax(v, axis=0).item()]
         return action
 
     def update_exploration_rate(self):
