@@ -17,20 +17,20 @@ from gym.spaces import Box
 #         return new_obs
 
 
-class AvoidStackWrapper(gym.Wrapper):
-    def __init__(self, env, threshold=50):
-        super().__init__(env)
-        self.env = env
-        self.no_change_counter = 0
-        self.threshold = threshold
+# class AvoidStackWrapper(gym.Wrapper):
+#     def __init__(self, env, threshold=50):
+#         super().__init__(env)
+#         self.env = env
+#         self.no_change_counter = 0
+#         self.threshold = threshold
         
-    def step(self, action):
-        next_state, reward, done, info = self.env.step(action)
-        if info['no_change']:
-            self.no_change_counter += 1
-            if self.no_change_counter == self.threshold:
-                done = True
-        return next_state, reward, done, info
+#     def step(self, action):
+#         next_state, reward, done, info = self.env.step(action)
+#         if info['no_change']:
+#             self.no_change_counter += 1
+#             if self.no_change_counter == self.threshold:
+#                 done = True
+#         return next_state, reward, done, info
 
 
 class RewardWrapper(gym.RewardWrapper):
@@ -43,6 +43,6 @@ class RewardWrapper(gym.RewardWrapper):
         return rew
 
 def env_wrappers(env, cfg, init_episode):
-    env = AvoidStackWrapper(env)
+    # env = AvoidStackWrapper(env)
     env = RewardWrapper(env)
     return env
