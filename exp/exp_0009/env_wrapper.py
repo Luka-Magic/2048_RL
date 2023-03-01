@@ -3,7 +3,7 @@ import torch
 import gym
 from gym.spaces import Box
 
-class AvoidStackWrapper(gym.Wrapper):
+class OneRewardWrapper(gym.Wrapper):
     def __init__(self, env, threshold=50):
         super().__init__(env)
         self.env = env
@@ -17,3 +17,8 @@ class AvoidStackWrapper(gym.Wrapper):
         else:
             reward += 1
         return next_state, reward, done, info
+
+def env_wrappers(env, cfg, init_episode):
+    env = OneRewardWrapper(env)
+    # env = RewardWrapper(env)
+    return env
