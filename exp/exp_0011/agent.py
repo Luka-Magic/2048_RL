@@ -294,8 +294,6 @@ class Agent:
             self.logger.step_learn(loss, v)
 
     def restart_learning(self, checkpoint_path):
-        self._reset_episode_log()
-
         checkpoint = torch.load(checkpoint_path)
         self.brain.policy_net.load_state_dict(checkpoint['model'])
         self.brain.synchronize_model()
