@@ -173,16 +173,16 @@ class Brain:
         else:
             after_states, can_actions, scores = self.converter.make_after_states(state)
             after_states = torch.from_numpy(np.stack(after_states, axis=0)).float().to(self.device)
-            scores = torch.from_numpy(np.stack(scores, axis=0)).float().to(self.device)
+            scores = torch.tensor([scores]).float().to(self.device)
             with torch.no_grad():
                 v = self.policy_net(after_states) + scores
-            print(after_states.shape)
-            print(scores.shape)
-            print(self.policy_net(after_states).shape)
-            print(can_actions)
-            print(type(can_actions))
-            print(v.shape)
-            print(torch.argmax(v, axis=0).item())
+            # print(after_states.shape)
+            # print(scores.shape)
+            # print(self.policy_net(after_states).shape)
+            # print(can_actions)
+            # print(type(can_actions))
+            # print(v.shape)
+            # print(torch.argmax(v, axis=0).item())
             action = can_actions[torch.argmax(v, axis=0).item()]
         return action
 
