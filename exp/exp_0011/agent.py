@@ -179,7 +179,7 @@ class Brain:
             print(after_states.shape)
             print(scores.shape)
             print(can_actions)
-            print(type(actions))
+            print(type(can_actions))
             print(v.shape)
             print(torch.argmax(v, axis=0).item())
             action = can_actions[torch.argmax(v, axis=0).item()]
