@@ -41,7 +41,7 @@ priority_beta: 0.4
 multi_step_learning: False
 n_multi_steps: 1
 
-######   LEARNING   #############################
+######   LEARNING   ##############################
 # learning
 batch_size: 32
 lr: 0.0025
