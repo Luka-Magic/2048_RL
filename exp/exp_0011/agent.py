@@ -178,6 +178,7 @@ class Brain:
                 v = self.policy_net(after_states) + scores
             print(after_states.shape)
             print(scores.shape)
+            print(self.policy_net(after_states).shape)
             print(can_actions)
             print(type(can_actions))
             print(v.shape)
