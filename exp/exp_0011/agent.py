@@ -16,7 +16,6 @@ import wandb
 import zlib
 import pickle
 
-
 Transition = namedtuple(
     'Transition', ('state', 'next_state', 'action', 'reward', 'done'))
 
@@ -177,6 +176,10 @@ class Brain:
             scores = torch.from_numpy(np.stack(scores, axis=0)).float().to(self.device)
             with torch.no_grad():
                 v = self.policy_net(after_states) + scores
+            print(after_states.shape)
+            print(scores.shape)
+            print(can_actions)
+            print(torch.argmax(v, axis=0).item())
             action = can_actions[torch.argmax(v, axis=0).item()]
         return action
 
