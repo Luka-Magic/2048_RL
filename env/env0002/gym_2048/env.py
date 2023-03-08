@@ -26,7 +26,7 @@ class Base2048Env(gym.Env):
       RIGHT: 'right',
       DOWN: 'down',
   }
-
+  
   def __init__(self, width=4, height=4):
     self.width = width
     self.height = height

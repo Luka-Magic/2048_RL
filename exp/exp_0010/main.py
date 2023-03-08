@@ -49,26 +49,21 @@ def main(cfg: DictConfig):
         init_episode = agent.restart_episode
 
     env = env_wrappers(env, cfg, init_episode=init_episode)
+
     # 学習
     for episode in tqdm(range(1+init_episode, 1+cfg.n_episodes)):
         state = env.reset()
         after_state = np.zeros_like(state)
         while True:
             action = agent.action(state)
-            # print(action)
-            # print(state)
             next_state, reward, done, info = env.step(action)
-            # print(next_state)
-            # if np.all(state == next_state):
-            #     print('no change')
-            #     break
             after_state = info['after_state']
             agent.learn(after_state, next_state, action, reward, done)
             state = next_state
             if done:
                 break
 
-        agent.log_episode(episode, {})
+        agent.log_episode(episode, {'state': state})
 
         if episode % cfg.eval_interval == 0:
             for _ in range(cfg.n_eval_episodes):
@@ -80,7 +75,7 @@ def main(cfg: DictConfig):
                     state = next_state
                     if done:
                         break
-                agent.eval_log_episode()
+                agent.eval_log_episode({'state': state})
             agent.eval_log(episode)
 
 if __name__ == '__main__':

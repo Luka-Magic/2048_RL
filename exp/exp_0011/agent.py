@@ -176,13 +176,6 @@ class Brain:
             scores = torch.tensor(scores).float().to(self.device)
             with torch.no_grad():
                 v = self.policy_net(after_states).squeeze(dim=1) + scores
-            # print(after_states.shape)
-            # print(scores.shape)
-            # print(self.policy_net(after_states).shape)
-            # print(can_actions)
-            # print(type(can_actions))
-            # print(v.shape)
-            # print(torch.argmax(v, axis=0).item())
             action = can_actions[torch.argmax(v, axis=0).item()]
         return action
 

@@ -108,10 +108,6 @@ class Agent:
         after_states, can_actions, scores = self.converter.make_after_states(state)
         value_after_states = np.array([self.LUT.get_value(after_state) for after_state in after_states]) \
                             + np.array(scores)
-        # if len(value_after_states) != 4:
-        #     print(state)
-        #     print(can_actions)
-        #     exit()
         action = can_actions[np.argmax(value_after_states)]
         return action
     
@@ -155,11 +151,11 @@ class Agent:
         if self.wandb:
             self.eval_logger.step(reward)
     
-    def eval_log_episode(self):
+    def eval_log_episode(self, info):
         '''
             評価時1episodeでの値をアップデート
         '''
-        self.eval_logger.eval_episode()
+        self.eval_logger.eval_episode(info)
 
 
     def eval_log(self, episode):
@@ -223,6 +219,7 @@ class Logger:
     def log_episode(self, step, episode, info):
         self.episode_last_time = time.time()
         episode_time = self.episode_last_time - self.episode_start_time
+        episode_clear = np.max(info['state']) >= 2048
         if self.episode_learn_steps == 0:
             episode_average_grad = 0
             episode_average_v = 0
@@ -241,6 +238,7 @@ class Logger:
             length=self.episode_steps,
             average_grad=episode_average_grad,
             average_v=episode_average_v,
+            clear=episode_clear
         )
         wandb.log(wandb_dict)
 
@@ -258,6 +256,7 @@ class EvalLogger:
         self.n_episodes = 0
         self.eval_sum_rewards = 0.0
         self.eval_max_reward = 0.0
+        self.eval_clear = 0
 
     def _reset_episode_log(self):
         # 変数名どうしよう、logとかつけたらわかりやすそう
@@ -268,20 +267,24 @@ class EvalLogger:
         self.episode_sum_rewards += reward
         self.episode_max_reward = max(reward, self.episode_max_reward)
 
-    def eval_episode(self):
+    def eval_episode(self, info):
         self.n_episodes += 1
         self.eval_sum_rewards += self.episode_sum_rewards
         self.eval_max_reward += self.episode_max_reward
+        episode_clear = int(np.max(info['state']) >= 2048)
+        self.eval_clear += episode_clear
         self._reset_episode_log()
 
     def log_eval(self, episode):
         update_flag = False
         mean_reward = self.eval_sum_rewards / self.n_episodes
         mean_max_reward = self.eval_max_reward / self.n_episodes
+        clear_rate = self.eval_clear / self.n_episodes
         wandb_dict = dict(
             episode = episode,
             mean_reward = mean_reward,
             mean_max_reward = mean_max_reward,
+            clear_rate = clear_rate
         )
         wandb.log(wandb_dict)
         print(f'\n    EVAL [{episode}] - mean_reward: {mean_reward}, mean_max_reward: {mean_max_reward}')
