@@ -173,9 +173,9 @@ class Brain:
         else:
             after_states, can_actions, scores = self.converter.make_after_states(state)
             after_states = torch.from_numpy(np.stack(after_states, axis=0)).float().to(self.device)
-            scores = torch.tensor([scores]).float().to(self.device)
+            scores = torch.tensor(scores).float().to(self.device)
             with torch.no_grad():
-                v = self.policy_net(after_states) + scores
+                v = self.policy_net(after_states).squeeze(dim=1) + scores
             # print(after_states.shape)
             # print(scores.shape)
             # print(self.policy_net(after_states).shape)
