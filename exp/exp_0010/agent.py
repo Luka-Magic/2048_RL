@@ -1,11 +1,6 @@
 from math import gamma
 import random
 import numpy as np
-import torch
-from torch import nn
-from torchsummary import summary
-from torch.cuda.amp import autocast, GradScaler
-from model import Model
 from utils.sum_tree import SumTree
 from utils.state_converter import StateConverter
 from collections import deque, namedtuple
@@ -13,8 +8,6 @@ import pickle
 import time
 import datetime
 import wandb
-import zlib
-import pickle
 
 
 Transition = namedtuple(
@@ -47,7 +40,7 @@ class LUT:
             [0, 4, 8, 12], [1, 5, 9, 13], [2, 6, 10, 14], [3, 7, 11, 15]
         ]
         # self.tuples_arr = np.array(self.tuples)
-        self.reset_model(self)
+        self.reset_model()
 
     def _state_convert(self, state):
         '''
@@ -56,31 +49,38 @@ class LUT:
         return np.log2(np.clip(state, a_min=1, a_max=None)).astype(np.int8)
     
     def get_value(self, state):
-
         '''
             state -> 
             for ntuple in ntuples:
                 ntupleでindexに変換 -> 検索
         '''
+
         value = 0
         state = self._state_convert(state)
-        for tuple in self.tuples:
-            index = self._state2index(tuple, state)
+        for tuple_idx, tuple in enumerate(self.tuples):
+            index = self._state2index(tuple, tuple_idx, state)
             value += self.lut[index]
         return value
 
-    def _state2index(self, tuple, state):
-        return sum(state.reshape(-1)[tuple] * (15 ** np.array([0, 1, 2, 3])))    
+    def _state2index(self, tuple, tuple_idx, state):
+        idx_start = self.lut_split[tuple_idx]
+        idx = sum(state.reshape(-1)[tuple] * (15 ** np.array([0, 1, 2, 3])))    
+        return idx_start + idx
 
     def learn(self, state, grad):
         state = self._state_convert(state)
-        for tuple in self.tuples:
-            index = self._state2index(tuple, state)
+        for tuple_idx, tuple in enumerate(self.tuples):
+            index = self._state2index(tuple, tuple_idx, state)
             self.lut[index] += grad
     
     def reset_model(self):
-        table_length = sum([len(ntuple)**16 for ntuple in self.tuples])
-        self.lut = [0.0] * table_length
+        lut_split = [0]
+        length = 0
+        for ntuple in self.tuples:
+            length += 15**len(ntuple)
+            lut_split.append(length)
+        self.lut = [0.0] * length
+        self.lut_split = lut_split
 
 
 class Agent:
@@ -95,15 +95,27 @@ class Agent:
         self.episode = 0
         self.wandb = cfg.wandb
 
+        self.restart_step = 0
+        self.restart_episode = 0
+
+        self.save_checkpoint_interval = cfg.save_checkpoint_interval
+
+        self.logger = Logger()
+        self.eval_logger = EvalLogger()
+
     def action(self, state):
         self.step += 1
         after_states, can_actions, scores = self.converter.make_after_states(state)
         value_after_states = np.array([self.LUT.get_value(after_state) for after_state in after_states]) \
                             + np.array(scores)
+        # if len(value_after_states) != 4:
+        #     print(state)
+        #     print(can_actions)
+        #     exit()
         action = can_actions[np.argmax(value_after_states)]
         return action
     
-    def learn(self, after_state, next_state, action, reward):
+    def learn(self, after_state, next_state, action, reward, done):
         '''
             1. Vを計算
                 V = get_v(after_state)
@@ -114,14 +126,19 @@ class Agent:
         next_after_states, _, scores = self.converter.make_after_states(next_state)
         value_after_states = np.array([self.LUT.get_value(next_after_state) for next_after_state in next_after_states]) \
                            + np.array(scores)
+        if done:
+            return
         next_v = np.max(value_after_states)
-        grad = (next_v - v) * self.learning_rate
+        grad = (next_v - v) * self.lr
         self.LUT.learn(after_state, grad)
 
         if self.wandb:
             self.logger.step(reward, v, grad)
 
     def log_episode(self, episode, info):
+        '''
+            学習でepisode終了時におくるlog
+        '''
         self.episode = episode
         if self.wandb:
             self.logger.log_episode(
@@ -130,12 +147,25 @@ class Agent:
         if episode != 0 and episode != self.restart_episode:
             if episode % self.save_checkpoint_interval == 0:
                 self._save_checkpoint()
-    
+        
     def eval_observe(self, reward):
+        '''
+            評価時に観測した値をアップデート
+        '''
         if self.wandb:
             self.eval_logger.step(reward)
+    
+    def eval_log_episode(self):
+        '''
+            評価時1episodeでの値をアップデート
+        '''
+        self.eval_logger.eval_episode()
 
-    def log_eval(self, episode):
+
+    def eval_log(self, episode):
+        '''
+            1回分の評価を送る
+        '''
         update_flag = self.eval_logger.log_eval(episode)
         if update_flag:
             self._save()
@@ -158,13 +188,14 @@ class Agent:
         )
     
     def _save(self):
-        checkpoint_path = (self.save_dir / f'best_model.ckpt')
-        torch.save(dict(
-            model=self.brain.policy_net.state_dict(),
-            exploration_rate=self.brain.exploration_rate,
+        checkpoint_path = (self.save_dir / f'best_model.pkl')
+        save_dict = dict(
+            model=self.LUT.lut,
             step=self.step,
             episode=self.episode
-        ), checkpoint_path)
+        )
+        with open(checkpoint_path, 'wb') as f:
+            pickle.dump(save_dict, f)
 
 class Logger:
     def __init__(self):
@@ -230,7 +261,6 @@ class EvalLogger:
 
     def _reset_episode_log(self):
         # 変数名どうしよう、logとかつけたらわかりやすそう
-        self.episode_steps = 0
         self.episode_sum_rewards = 0.0
         self.episode_max_reward = 0.0
     
@@ -242,6 +272,7 @@ class EvalLogger:
         self.n_episodes += 1
         self.eval_sum_rewards += self.episode_sum_rewards
         self.eval_max_reward += self.episode_max_reward
+        self._reset_episode_log()
 
     def log_eval(self, episode):
         update_flag = False

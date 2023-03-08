@@ -4,14 +4,14 @@ from gym.spaces import Box
 
 class StateConverter:
     def __init__(self):
-        # self.reference = np.tile(2**np.arange(16), (4, 4, 1)).transpose(2, 1, 0)
-        # self.reference[0, :, :] = 0
+        self.reference = np.tile(2**np.arange(16), (4, 4, 1)).transpose(2, 1, 0)
+        self.reference[0, :, :] = 0
         self.width = 4
         self.height = 4
     
-    # def convert(self, state):
-    #     new_obs = (self.reference == np.tile(state, (16, 1, 1))).astype(np.uint8)
-    #     return new_obs
+    def convert(self, state):
+        new_obs = (self.reference == np.tile(state, (16, 1, 1))).astype(np.uint8)
+        return new_obs
     
     def make_after_states(self, state):
         after_states = []
@@ -23,12 +23,8 @@ class StateConverter:
             score, updated_obs = self._slide_left_and_merge(rotated_obs)
             after_state = np.rot90(updated_obs, k=4 - action)
             if not np.all(state==after_state):
-                # print(state)
-                # print(after_states)
-                # print(action)
-                # exit()
                 can_actions.append(action)
-                after_states.append(after_state)
+                after_states.append(self.convert(after_state))
                 scores.append(score)
         return after_states, can_actions, scores
     
@@ -45,6 +41,7 @@ class StateConverter:
             row = np.pad(np.array(result_row), (0, self.width - len(result_row)),
                         'constant', constant_values=(0,))
             result.append(row)
+
         return score, np.array(result, dtype=np.int64)
 
     @staticmethod
